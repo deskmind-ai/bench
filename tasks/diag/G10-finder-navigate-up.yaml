@@ -1,0 +1,22 @@
+id: G10-finder-navigate-up
+title: Finder 深入后返回上层
+surface: finder
+tags: [diag, finder, navigation]
+app: com.apple.finder
+goal: |
+  请把 2026/01 文件夹里的 a.log 移动到工作目录的顶层，
+  也就是和 stray.log 同一层。其他文件保持原位。
+fixture: diag_nav
+budget: {max_actions: 25, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt", "$WS/stray.log"]
+grade:
+  checkpoints:
+    - name: at_top
+      critical: true
+      check: {file_exists: {path: "$WS/a.log"}}
+    - name: gone_from_source
+      check: {file_absent: {path: "$WS/2026/01/a.log"}}
+  guards:
+    - {file_exists: {path: "$WS/2026/02/b.log"}}
+oracle_effect:
+  - mv 2026/01/a.log ./

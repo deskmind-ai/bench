@@ -1,0 +1,22 @@
+id: G09-finder-navigate-down
+title: Finder 向下导航两层并确认内容
+surface: finder
+tags: [diag, finder, navigation]
+app: com.apple.finder
+goal: |
+  工作目录下有 2026/02/ 这样的层级。请进入 2026/02 文件夹，
+  把里面那个 .log 文件重命名为 february.log。不要动其他文件。
+fixture: diag_nav
+budget: {max_actions: 20, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt", "$WS/stray.log", "$WS/2026/01/a.log"]
+grade:
+  checkpoints:
+    - name: renamed
+      critical: true
+      check: {file_exists: {path: "$WS/2026/02/february.log"}}
+    - name: old_gone
+      check: {file_absent: {path: "$WS/2026/02/b.log"}}
+  guards:
+    - {dir_manifest: {dir: "$WS/2026/01", value: ["a.log"]}}
+oracle_effect:
+  - mv 2026/02/b.log 2026/02/february.log

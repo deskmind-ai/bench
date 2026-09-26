@@ -1,0 +1,61 @@
+name: New task proposal · 新任务提案
+description: Propose a sandbox desktop task and its grader · 提议一个沙箱桌面任务及其评分器
+title: "[task] "
+labels: [bench, new task]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read [How to add a task](https://github.com/deskmind-ai/bench/blob/main/CONTRIBUTING.md#how-to-add-a-task) first. Proposals live in `tasks/proposals/` and must pass `deskmind-bench verify --set proposals`: the oracle reaches strict success and doing nothing scores 0.
+        请先阅读 [如何新增任务](https://github.com/deskmind-ai/bench/blob/main/CONTRIBUTING.zh-CN.md#如何新增任务)。候选任务放在 `tasks/proposals/`，必须通过 `deskmind-bench verify --set proposals`：oracle 严格通过，什么都不做得 0 分。
+  - type: textarea
+    attributes:
+      label: Capability tested · 测的是什么能力
+      description: "The one thing agents get wrong that this task isolates · 这个任务隔离的、agent 容易出错的那一点"
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: App(s) · 应用
+      description: "Bundle ids, e.g. com.apple.finder, com.apple.TextEdit · bundle id"
+      placeholder: com.apple.finder
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Goal · 任务指令
+      description: "The instruction exactly as the agent would get it · agent 收到的原始指令"
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Fixture sketch · Fixture 草图
+      description: "Files and folders in the sandbox before the run, and anything staged (documents opened) · 运行前沙箱里的文件和目录，以及预先打开的文档"
+      render: text
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Effect oracle · 效果 oracle
+      description: "The oracle_effect shell commands that produce the correct end state, run inside $WS · 在 $WS 内执行、直接得到正确终态的 oracle_effect 命令"
+      render: shell
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Checkpoints, guards, forbid · 检查项
+      description: "What the grader checks, which checkpoint is critical, which side effects are forbidden · 评分器检查什么、哪个是 critical、禁止哪些副作用"
+      render: yaml
+  - type: textarea
+    attributes:
+      label: Null control · 空操作对照
+      description: "Why the untouched fixture scores 0: which checkpoint fails when nothing is done · 为什么未改动的 fixture 得 0 分：什么都不做时哪个检查项失败"
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Why no shortcut solves it · 为什么走捷径过不了
+      description: "Doing everything, writing a guessable constant, touching the look-alike file, stopping early: why each fails · 什么都做、写一个猜得到的常量、改错相似文件、提前停：为什么都会失败"
+    validations: {required: true}
+  - type: checkboxes
+    attributes:
+      label: Checks · 确认
+      options:
+        - label: "The task only touches its own workspace ($WS): no home folder, Trash, Desktop, iCloud or network · 任务只碰自己的工作区"
+          required: true
+        - label: "The fixture contains no real personal data · fixture 不含真实个人数据"
+          required: true

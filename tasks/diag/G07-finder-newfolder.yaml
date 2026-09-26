@@ -1,0 +1,24 @@
+id: G07-finder-newfolder
+title: Finder 只建一个文件夹（最小步骤）
+surface: finder
+tags: [diag, finder, minimal]
+app: com.apple.finder
+goal: |
+  在工作目录里新建一个名为 archive 的文件夹。不要做别的。
+fixture: diag_finder2
+budget: {max_actions: 12, wall_clock_s: 600}
+sentinels: ["$WS/keep/reference.txt", "$WS/a.txt"]
+grade:
+  checkpoints:
+    - name: folder_exists
+      critical: true
+      check: {file_exists: {path: "$WS/archive"}}
+  guards:
+    - {file_count: {dir: "$WS", glob: "*.txt", value: 3}}
+  forbid:
+    - {file_exists: {path: "$WS/untitled folder"}}
+    # The system language decides what Finder names a new folder, so the English name alone let a run pass while
+    # leaving a stray folder behind.
+    - {file_exists: {path: "$WS/未命名文件夹"}}
+oracle_effect:
+  - mkdir archive

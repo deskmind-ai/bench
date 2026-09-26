@@ -1,0 +1,35 @@
+id: G03-safari-extract
+title: 从网页读取数据写入 CSV（跨应用）
+surface: cross_app
+tags: [diag, safari, crossapp, zh]
+app: com.apple.Safari
+goal: |
+  Safari 打开着一张仓库库存清单。请把表格里三行的「编号,名称,库存」
+  按库存从少到多的顺序追加进已在 TextEdit 中打开的 inventory.csv。
+  表头已存在，不要重复写。写完保存。
+fixture: diag_web
+reset_apps: [com.apple.Safari, com.apple.TextEdit]
+stage:
+  - open -a TextEdit "$WS/inventory.csv"
+  - open -a Safari "$WS/page.html"
+budget: {max_actions: 40, wall_clock_s: 1200}
+sentinels: ["$WS/keep/reference.txt", "$WS/page.html"]
+grade:
+  checkpoints:
+    - name: any_row
+      check: {file_text_matches: {path: "$WS/inventory.csv", pattern: "^SKU-\\d{4},"}}
+    - name: all_three
+      check:
+        all_of:
+          - {file_text_matches: {path: "$WS/inventory.csv", pattern: "^SKU-9032,不锈钢法兰,17$"}}
+          - {file_text_matches: {path: "$WS/inventory.csv", pattern: "^SKU-4417,密封垫圈,238$"}}
+          - {file_text_matches: {path: "$WS/inventory.csv", pattern: "^SKU-1185,液压接头,460$"}}
+    - name: sorted_by_stock
+      critical: true
+      check:
+        file_text_equals:
+          path: "$WS/inventory.csv"
+          normalise: nfc_rstrip
+          value: "编号,名称,库存\nSKU-9032,不锈钢法兰,17\nSKU-4417,密封垫圈,238\nSKU-1185,液压接头,460"
+oracle_effect:
+  - printf 'SKU-9032,不锈钢法兰,17\nSKU-4417,密封垫圈,238\nSKU-1185,液压接头,460\n' >> inventory.csv

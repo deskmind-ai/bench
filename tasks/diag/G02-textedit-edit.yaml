@@ -1,0 +1,35 @@
+id: G02-textedit-edit
+title: TextEdit 修改文档多处内容
+surface: editor
+tags: [diag, textedit, multistep]
+app: com.apple.TextEdit
+goal: |
+  memo.txt 已在 TextEdit 中打开。请把 Status 那一行改成 Status: final，
+  并把 Budget 从 1200 改成 1500。其他行保持不变。改完保存。
+fixture: diag_doc
+reset_apps: [com.apple.TextEdit]
+stage: ['open -a TextEdit "$WS/memo.txt"']
+budget: {max_actions: 25, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt"]
+grade:
+  checkpoints:
+    - name: status_changed
+      check: {file_text_matches: {path: "$WS/memo.txt", pattern: "^Status: final$"}}
+    - name: budget_changed
+      check: {file_text_matches: {path: "$WS/memo.txt", pattern: "^Budget: 1500$"}}
+    - name: exact_result
+      critical: true
+      check:
+        file_text_equals:
+          path: "$WS/memo.txt"
+          normalise: nfc_rstrip
+          value: |
+            Quarterly review
+            Owner: Alice
+            Status: final
+            Budget: 1500
+oracle_effect:
+  # Block scalar: an unquoted YAML scalar containing ": " is parsed as a mapping,
+  # and this command has three of them.
+  - |
+    printf 'Quarterly review\nOwner: Alice\nStatus: final\nBudget: 1500\n' > memo.txt

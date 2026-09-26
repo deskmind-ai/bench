@@ -1,0 +1,41 @@
+id: G06-wrong-target
+title: 相似文件中只改指定的那个
+surface: editor
+tags: [diag, interaction, reliability]
+app: com.apple.TextEdit
+goal: |
+  两个季度报告都已在 TextEdit 中打开，文件名只差一个字符。
+  请只把 **Q4** 那份的 status 改成 final，Q3 那份一个字都不要动。改完保存。
+fixture: diag_target
+reset_apps: [com.apple.TextEdit]
+stage:
+  - open -a TextEdit "$WS/report-2026-Q3.txt"
+  - open -a TextEdit "$WS/report-2026-Q4.txt"
+budget: {max_actions: 25, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt"]
+grade:
+  checkpoints:
+    - name: q4_updated
+      check: {file_text_matches: {path: "$WS/report-2026-Q4.txt", pattern: "^status: final$"}}
+    - name: q4_exact
+      critical: true
+      check:
+        file_text_equals:
+          path: "$WS/report-2026-Q4.txt"
+          normalise: nfc_rstrip
+          value: |
+            Q4 revenue: 1850
+            status: final
+  guards:
+    # "Q4 的营收行还在" 什么都不做时也成立，所以它是守卫不是进度。
+    - {file_text_matches: {path: "$WS/report-2026-Q4.txt", pattern: "^Q4 revenue: 1850$"}}
+    # 改错文件是方案里列为阻断发布的行为，所以它是硬门而不是扣分项。
+    - file_text_equals:
+        path: "$WS/report-2026-Q3.txt"
+        normalise: nfc_rstrip
+        value: |
+          Q3 revenue: 1200
+          status: draft
+oracle_effect:
+  - |
+    printf 'Q4 revenue: 1850\nstatus: final\n' > report-2026-Q4.txt

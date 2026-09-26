@@ -1,0 +1,22 @@
+id: G13-roundtrip
+title: 跨应用往返：读一处写另一处
+surface: cross_app
+tags: [diag, crossapp, zh]
+app: com.apple.TextEdit
+goal: |
+  source.txt 里有订单号和金额。请把它们按 `订单号,金额` 一行写进 target.txt 并保存。
+  只写数值，不要写标签文字。
+fixture: diag_roundtrip
+reset_apps: [com.apple.TextEdit]
+stage:
+  - open -a TextEdit "$WS/target.txt"
+  - open -a TextEdit "$WS/source.txt"
+budget: {max_actions: 20, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt", "$WS/source.txt"]
+grade:
+  checkpoints:
+    - name: written
+      critical: true
+      check: {file_text_equals: {path: "$WS/target.txt", value: "A-7781,5620", normalise: nfc_rstrip}}
+oracle_effect:
+  - printf 'A-7781,5620\n' > target.txt

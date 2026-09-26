@@ -1,0 +1,22 @@
+id: G08-finder-move-one
+title: Finder 移动单个文件到已有文件夹
+surface: finder
+tags: [diag, finder, minimal]
+app: com.apple.finder
+goal: |
+  把 inbox 文件夹里的 2026-02-c.log 移动到工作目录的顶层。
+  其他文件保持原位。
+fixture: diag_finder3
+budget: {max_actions: 15, wall_clock_s: 600}
+sentinels: ["$WS/keep/reference.txt"]
+grade:
+  checkpoints:
+    - name: moved_to_top
+      critical: true
+      check: {file_exists: {path: "$WS/2026-02-c.log"}}
+    - name: gone_from_inbox
+      check: {file_absent: {path: "$WS/inbox/2026-02-c.log"}}
+  guards:
+    - {dir_manifest: {dir: "$WS/inbox", value: ["2026-01-a.log", "2026-01-b.log"]}}
+oracle_effect:
+  - mv inbox/2026-02-c.log ./

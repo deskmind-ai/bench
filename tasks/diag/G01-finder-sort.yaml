@@ -1,0 +1,23 @@
+id: G01-finder-sort
+title: Finder 按类型归档文件
+surface: finder
+tags: [diag, finder, multistep]
+app: com.apple.finder
+goal: |
+  工作目录里混着几个不同类型的文件。请新建一个名为 docs 的文件夹，
+  把 .txt 文件都移进去。其他文件和 keep 目录不要动。
+fixture: diag_files
+budget: {max_actions: 30, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt", "$WS/budget.csv", "$WS/photo.png"]
+grade:
+  checkpoints:
+    - name: folder_created
+      check: {file_exists: {path: "$WS/docs"}}
+    - name: txt_files_moved
+      critical: true
+      check: {dir_manifest: {dir: "$WS/docs", value: ["draft.txt", "notes.txt"]}}
+  guards:
+    - {file_absent: {path: "$WS/notes.txt"}}
+    - {file_exists: {path: "$WS/report.pdf"}}
+oracle_effect:
+  - mkdir -p docs && mv draft.txt notes.txt docs/

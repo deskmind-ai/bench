@@ -1,0 +1,629 @@
+{
+  "suite": "diag",
+  "repeats_per_task": 3,
+  "metric": "strict pass (every checkpoint passes, no guard broken, no forbidden side effect)",
+  "configs": [
+    {
+      "suite_version": "diag-v21",
+      "suite_hash": "5eec62a0c662",
+      "label": "router-v7b",
+      "system": "DeskMind Brain two-tier router (0.8B → 4B), revision v7b",
+      "runs_on": "local, Apple M4 Pro",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 39,
+      "env_errors": 0,
+      "passed": 32,
+      "strict": 0.8205,
+      "partial": 0.859,
+      "false_done": 2,
+      "no_progress_loops": 0,
+      "step_latency_s": {
+        "p50": 3.257,
+        "p95": 5.554
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 2,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      }
+    },
+    {
+      "suite_version": "diag-v20",
+      "suite_hash": "5eec62a0c662",
+      "label": "jev",
+      "system": "Jev (TypeSafe AI), hosted System One API (cloud reference)",
+      "runs_on": "cloud",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 39,
+      "env_errors": 0,
+      "passed": 33,
+      "strict": 0.8462,
+      "partial": 0.8846,
+      "false_done": 0,
+      "no_progress_loops": 5,
+      "step_latency_s": {
+        "p50": 0.371,
+        "p95": 0.45
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      }
+    },
+    {
+      "suite_version": "diag-v20",
+      "suite_hash": "5eec62a0c662",
+      "label": "router-v7",
+      "system": "DeskMind Brain two-tier router (0.8B → 4B), revision v7",
+      "runs_on": "local, Apple M4 Pro",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 39,
+      "env_errors": 0,
+      "passed": 29,
+      "strict": 0.7436,
+      "partial": 0.7692,
+      "false_done": 3,
+      "no_progress_loops": 1,
+      "step_latency_s": {
+        "p50": 3.167,
+        "p95": 7.279
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 2,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      }
+    },
+    {
+      "suite_version": "diag-v19",
+      "suite_hash": "5eec62a0c662",
+      "label": "router-v7",
+      "system": "DeskMind Brain two-tier router (0.8B → 4B), revision v7",
+      "runs_on": "local, Apple M4 Pro",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 39,
+      "env_errors": 0,
+      "passed": 30,
+      "strict": 0.7692,
+      "partial": 0.8205,
+      "false_done": 2,
+      "no_progress_loops": 0,
+      "step_latency_s": {
+        "p50": 3.643,
+        "p95": 5.087
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 1,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 2,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      }
+    },
+    {
+      "suite_version": "diag-v19",
+      "suite_hash": "5eec62a0c662",
+      "label": "g11b-4B",
+      "system": "DeskMind Brain 4B checkpoint g11b, two-stage serving",
+      "runs_on": "local, Apple M4 Pro",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 39,
+      "env_errors": 0,
+      "passed": 27,
+      "strict": 0.6923,
+      "partial": 0.6923,
+      "false_done": 3,
+      "no_progress_loops": 1,
+      "step_latency_s": {
+        "p50": 3.361,
+        "p95": 7.562
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      }
+    },
+    {
+      "suite_version": "diag-v19",
+      "suite_hash": "5eec62a0c662",
+      "label": "g10b-4B",
+      "system": "DeskMind Brain 4B checkpoint g10b, two-stage serving",
+      "runs_on": "local, Apple M4 Pro",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 43,
+      "scored": 39,
+      "env_errors": 4,
+      "passed": 24,
+      "strict": 0.6154,
+      "partial": 0.6923,
+      "false_done": 7,
+      "no_progress_loops": 1,
+      "step_latency_s": null,
+      "rounds": 3,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 1
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 1
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 1
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 1
+        }
+      },
+      "note": "assembled from three rounds: one repeat, two repeats, and a rerun of G10-G13 whose round-one runs ended in environment errors; step latency is not pooled across rounds"
+    },
+    {
+      "suite_version": "diag-v19",
+      "suite_hash": "5eec62a0c662",
+      "label": "jev",
+      "system": "Jev (TypeSafe AI), hosted System One API (cloud reference)",
+      "runs_on": "cloud",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 37,
+      "env_errors": 2,
+      "passed": 31,
+      "strict": 0.8378,
+      "partial": 0.8514,
+      "false_done": 2,
+      "no_progress_loops": 4,
+      "step_latency_s": {
+        "p50": 0.981,
+        "p95": 1.259
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 1,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 0,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 0,
+          "scored": 1,
+          "env_errors": 2
+        },
+        "G06-wrong-target": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      },
+      "note": "G05: two of three runs ended in environment errors and are excluded from the score"
+    }
+  ]
+}

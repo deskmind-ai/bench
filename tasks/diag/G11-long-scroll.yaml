@@ -1,0 +1,23 @@
+id: G11-long-scroll
+title: 长文档中找到被滚动隐藏的内容
+surface: editor
+tags: [diag, scroll, reading]
+app: com.apple.TextEdit
+goal: |
+  log.txt 有 60 行，其中恰好有一行的状态是「关键」。请找到它，
+  把那一行的项目编号（形如 P-1047）写进 answer.txt 并保存。
+  只写编号本身，不要写别的。
+fixture: diag_long
+reset_apps: [com.apple.TextEdit]
+stage:
+  - open -a TextEdit "$WS/answer.txt"
+  - open -a TextEdit "$WS/log.txt"
+budget: {max_actions: 25, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt", "$WS/log.txt"]
+grade:
+  checkpoints:
+    - name: found_it
+      critical: true
+      check: {file_text_equals: {path: "$WS/answer.txt", value: "P-1047", normalise: nfc_rstrip}}
+oracle_effect:
+  - printf 'P-1047\n' > answer.txt

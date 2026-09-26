@@ -1,0 +1,31 @@
+id: G04-chinese-exact
+title: 中文精确输入（全角标点、数字、换行）
+surface: editor
+tags: [diag, zh, textentry]
+app: com.apple.TextEdit
+goal: |
+  report.txt 已在 TextEdit 中打开，目前是空的。请逐字写入下面两行，
+  全角标点、半角数字和换行都要一致，然后保存：
+  一季度营收 1,240 万元，环比增长 8.5%。
+  未结订单 37 笔，其中逾期 3 笔。
+fixture: diag_zh
+reset_apps: [com.apple.TextEdit]
+stage: ['open -a TextEdit "$WS/report.txt"']
+budget: {max_actions: 20, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt"]
+grade:
+  checkpoints:
+    - name: chinese_written
+      check: {file_text_matches: {path: "$WS/report.txt", pattern: "一季度营收"}}
+    - name: exact_text
+      critical: true
+      check:
+        file_text_equals:
+          path: "$WS/report.txt"
+          normalise: nfc_rstrip
+          value: |
+            一季度营收 1,240 万元，环比增长 8.5%。
+            未结订单 37 笔，其中逾期 3 笔。
+oracle_effect:
+  - |
+    printf '一季度营收 1,240 万元，环比增长 8.5%%。\n未结订单 37 笔，其中逾期 3 笔。\n' > report.txt

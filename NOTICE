@@ -1,0 +1,5 @@
+DeskMind Bench
+Copyright 2026 The DeskMind authors
+
+The task texts, fixtures and graders in this repository were written for it. Reference results were produced with
+DeskMind Hands; results labelled "Jev" were obtained through a hosted System One API and are reported as aggregates only.

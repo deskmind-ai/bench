@@ -1,0 +1,61 @@
+name: Results submission · 成绩提交
+description: Submit your agent's DeskMind Bench results · 提交你的 agent 在得心 Bench 上的成绩
+title: "[results] "
+labels: [bench, results]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read [How to submit results](https://github.com/deskmind-ai/bench/blob/main/CONTRIBUTING.md#how-to-submit-results) first. Results are comparable only with the same suite hash **and** the same harness version (`deskmind-bench versions`).
+        请先阅读 [如何提交成绩](https://github.com/deskmind-ai/bench/blob/main/CONTRIBUTING.zh-CN.md#如何提交成绩)。只有套件哈希**和** harness 版本都相同，成绩才可比。
+  - type: input
+    attributes:
+      label: System name · 系统名称
+      description: "The planner and its revision, as it should appear in the table · 规划器及其版本，按表格中显示的写"
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: suite_hash
+      description: "Output of deskmind-bench hash · deskmind-bench hash 的输出"
+      placeholder: 5eec62a0c662
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: hands_commit
+      description: "Full commit of deskmind-ai/hands the runs used, with no local changes · 运行所用 deskmind-ai/hands 的完整 commit，无本地改动"
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: suite_version
+      description: "The harness version, as in the run summary · 运行汇总中的 harness 版本"
+      placeholder: diag-v21
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: Repeats per task · 每个任务重复次数
+      description: "At least 3, every task in the suite · 至少 3 次，覆盖套件中所有任务"
+      placeholder: "3"
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: Results JSON · 成绩 JSON
+      description: "Link to the PR or file with results/community/<suite_version>/<label>.json and its summary · 指向成绩条目及汇总文件的 PR 或链接"
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Serving setup · 部署方式
+      description: "Weights (link or closed), inference stack and version, precision or quantisation, hardware, local or remote endpoint · 权重（链接或闭源）、推理框架及版本、精度或量化、硬件、本地还是远程"
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Compute note · 算力说明
+      description: "Machine, wall-clock time of the runs, cost if any; env errors and any reruns of them · 机器、总耗时、费用；环境错误及其重跑情况"
+    validations: {required: true}
+  - type: checkboxes
+    attributes:
+      label: Checks · 确认
+      options:
+        - label: "Env errors are reported separately, and no run the planner failed was rerun · 环境错误单列，规划器失败的运行没有重跑"
+          required: true
+        - label: "Per-task counts add up to the totals · 逐任务计数与总数一致"
+          required: true

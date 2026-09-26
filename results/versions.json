@@ -1,0 +1,34 @@
+{
+  "suite": "diag",
+  "tasks": 13,
+  "note": "The diag tasks, fixtures and graders are identical in all three versions (same suite hash). The version number is the harness's: how the desktop is presented to the planner and how actions are carried out. Numbers from different versions are not comparable.",
+  "versions": [
+    {
+      "suite_version": "diag-v19",
+      "harness_version": 19,
+      "hands_commit": "3aee984",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-09-25",
+      "status": "frozen",
+      "changes": "FOCUS_WINDOW is offered when there is one other window; scratch TextEdit windows say what they are; TextEdit saves are verified by the document's modified flag"
+    },
+    {
+      "suite_version": "diag-v20",
+      "harness_version": 20,
+      "hands_commit": "7934cfa",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-09-26",
+      "status": "superseded",
+      "changes": "fixes from a real-desktop review task (the task app can be switched back to, a file-name guard, cmd+S on a scratch document goes through save-as, unreadable windows are refused, values listed with 分别 are split) and a hidden-state sweep (the new-folder value is shown, effects are listed in a parseable form, saves undone by later edits, a pending save-as tracked per window)"
+    },
+    {
+      "suite_version": "diag-v21",
+      "harness_version": 21,
+      "hands_commit": "f1df118",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-09-26",
+      "status": "current",
+      "changes": "a colon after an ASCII word (\"Status: final，\") is not dictation, so \"final，\" is no longer offered as a value to type"
+    }
+  ]
+}

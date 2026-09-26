@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.env
+.DS_Store
+/runs/
+/reports/
+/data/
+/export/
+tools/native/ocr
