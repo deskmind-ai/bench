@@ -41,7 +41,7 @@ class Injection:
     """A fault or user event the harness fires mid-run.
 
     Injections are the interaction/reliability suite. They must be triggerable
-    from outside the agent so the same event can hit our product and Codex
+    from outside the agent so the same event can hit any agent under test
     identically -- nothing here reads agent internals.
     """
 
