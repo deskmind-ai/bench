@@ -2,8 +2,8 @@
 
 Made for a routine outer regression: every DeskMind Brain checkpoint, same tasks, same numbers, comparable over time.
 
-    deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8797 --label g8 --out g8-diag.json
-    deskmind-bench run --set diag  --repeats 1 --url http://127.0.0.1:8797 --label g8 --projection off --out ...
+    deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label brain-4b --out brain-4b-diag.json
+    deskmind-bench run --set diag  --repeats 1 --url http://127.0.0.1:8793 --label brain-4b --projection off --out ...
 
 No API spend: the planner is the local server at --url, a hosted key (SYSTEMONE_API_KEY) is removed from the environment so it can
 never be sent anywhere, and a non-local URL is refused unless --allow-remote. `diag` drives the real Finder and TextEdit through Peekaboo and needs its Screen
@@ -35,7 +35,7 @@ sys.path.insert(0, str(REPO))
 
 #: Bumped by hand when the meaning of a number changes without a file changing (a new failure rule in the loop, a
 #: different budget policy). File changes are caught by suite_hash on their own.
-SUITE_VERSION = "25"  # 25: a write refused as already done refuses only that text (dropped from the value options), no longer the field's TYPE/APPEND/REPLACE (G03 lost every way to write). 24: staging no longer launches TextEdit bare to close its documents (a bare launch left a hidden Open panel), and TextEdit is launched without state restoration. 23: value options include whole record lines (the goal template's shape, or separated cells with an identifier), so a record can be copied whole (G05). 22: timing-only harness changes (staging polls instead of fixed sleeps, no button-by-button alert fallback without a dialog, permission probe skippable by the host). 21: a colon after an ASCII word ("Status: final，") is not dictation, so no "final，" candidate. 20: the C036 fixes (task app switchable back to, file-name guard, scratch cmd+S via save-as, unreadable windows refused, 分别 values split) and the hidden-state sweep (newfolder value shown, effects in parseable form, saves undone by edits, pending save-as per window). 19: FOCUS_WINDOW offered with one other window; scratch TextEdit windows say what they are; TextEdit saves verified by `modified` (18: quoted-line value blocks)
+SUITE_VERSION = "25"  # 25: a write refused as already done refuses only that text (dropped from the value options), no longer the field's TYPE/APPEND/REPLACE (the web-extraction task lost every way to write). 24: staging no longer launches TextEdit bare to close its documents (a bare launch left a hidden Open panel), and TextEdit is launched without state restoration. 23: value options include whole record lines (the goal template's shape, or separated cells with an identifier), so a record can be copied whole (the ambiguous-record task). 22: timing-only harness changes (staging polls instead of fixed sleeps, no button-by-button alert fallback without a dialog, permission probe skippable by the host). 21: a colon after an ASCII word ("Status: final，") is not dictation, so no "final，" candidate. 20: the fixes from a real-desktop review task (task app switchable back to, file-name guard, scratch cmd+S via save-as, unreadable windows refused, 分别 values split) and the hidden-state sweep (newfolder value shown, effects in parseable form, saves undone by edits, pending save-as per window). 19: FOCUS_WINDOW offered with one other window; scratch TextEdit windows say what they are; TextEdit saves verified by `modified` (18: quoted-line value blocks)
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 
@@ -223,7 +223,7 @@ def main(argv: list[str] | None = None) -> int:
         "aggregate": aggregate(rows),
         "per_task": {k: aggregate(v) for k, v in sorted(per_task.items())},
         "runs": [{k: v for k, v in r.items() if not k.startswith("_")} for r in rows],
-        "runs_dir": str(runs_dir),
+        "runs_dir": runs_dir.name,
     }
     Path(args.out).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     a = summary["aggregate"]

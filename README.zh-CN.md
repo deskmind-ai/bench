@@ -53,7 +53,7 @@ pip install -e .
 deskmind-bench verify                  # 每个任务：效果 oracle 通过，什么都不做则失败
 deskmind-bench hash                    # 5eec62a0c662，即参考结果的套件哈希
 deskmind-bench versions                # harness 版本及其提交
-deskmind-bench score path/to/runs/ --suite-version diag-v21 --out mine.json   # 从磁盘重新给已完成的运行评分
+deskmind-bench score path/to/runs/ --suite-version diag-v25 --out mine.json   # 从磁盘重新给已完成的运行评分
 deskmind-bench table mine.json         # 每个任务的通过数，输出 markdown 表格
 ```
 
@@ -76,6 +76,10 @@ deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my
 
 | harness | 配置 | strict 通过 | 错误的 DONE | 每步 p50 |
 |---|---|---|---|---|
+| v25 | DeskMind Brain 路由（0.8B → 4B），4B g14，8-bit | **36/39（92%）** | 0 | 0.57 秒 |
+| v25 | DeskMind Brain 路由，4B g17，8-bit | 36/39（92%） | 3 | n/a |
+| v23 | DeskMind Brain 路由，4B g14，8-bit | **35/38（92%）**，1 次环境错误 | 0 | 0.59 秒 |
+| v23 | Jev（TypeSafe AI，云端参考） | 33/38（87%），1 次环境错误 | 2 | 0.36 秒 |
 | v21 | DeskMind Brain 路由（0.8B → 4B），v7b | **32/39（82%）** | 2 | 3.3 秒 |
 | v20 | Jev（TypeSafe AI，云端参考） | 33/39（85%） | 0 | 0.4 秒 |
 | v20 | DeskMind Brain 路由，v7 | 29/39（74%） | 3 | 3.2 秒 |
@@ -86,14 +90,18 @@ deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my
 
 ## 版本
 
-三个版本的任务、fixture 和评分器完全相同（套件哈希 `5eec62a0c662`）。变的是 harness：桌面如何呈现给规划模型、动作如何执行。
+所有版本的任务、fixture 和评分器完全相同（套件哈希 `5eec62a0c662`）。变的是 harness：桌面如何呈现给规划模型、动作如何执行。
 每个版本改了什么，见 [results/versions.md](results/versions.md)（以及 `versions.json`）。
 
 | 套件版本 | hands 提交 | 套件哈希 | 状态 |
 |---|---|---|---|
 | diag-v19 | `3aee984` | `5eec62a0c662` | 冻结 |
 | diag-v20 | `7934cfa` | `5eec62a0c662` | 已被取代 |
-| diag-v21 | `f1df118` | `5eec62a0c662` | 当前 |
+| diag-v21 | `f1df118` | `5eec62a0c662` | 冻结 |
+| diag-v22 | `1c3f47d` | `5eec62a0c662` | 冻结 |
+| diag-v23 | `713961b` | `5eec62a0c662` | 冻结 |
+| diag-v24 | `4d12033` | `5eec62a0c662` | 冻结 |
+| diag-v25 | `3d54492` | `5eec62a0c662` | 当前 |
 
 ## 读数字时请小心
 
@@ -103,7 +111,7 @@ deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my
 - **结果取决于 harness 版本。** 同一个规划模型在任务完全相同的情况下，v19 得 30/39，v20 得 29/39。只在同一版本内比较。
 - **只支持 macOS**，并且只在一台机器上测过（Apple M4 Pro、macOS 27、简体中文系统语言、Peekaboo 4.3.0）。任务用中文写成；
   其他语言环境和系统版本没有测过。
-- **有两个任务所有配置都没解出来：** G03（从网页读表格）和 G05（行动前先提问）。表中没有任何配置通过超过 13 个任务中的 11 个。
+- **G03（从网页读表格）所有配置都没解出来。** G05（行动前先提问）在 v21 及以前所有配置都没解出来；v25 上的 g14 路由除 G03 外通过了所有任务。
 - **测试集是公开的。** 任何人都可以在这些任务上训练。我们自己的训练任务是另外生成的，从不包含它们。
 
 ## 许可

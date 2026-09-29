@@ -1,7 +1,7 @@
 {
   "suite": "diag",
   "tasks": 13,
-  "note": "The diag tasks, fixtures and graders are identical in all three versions (same suite hash). The version number is the harness's: how the desktop is presented to the planner and how actions are carried out. Numbers from different versions are not comparable.",
+  "note": "The diag tasks, fixtures and graders are identical in all versions (same suite hash). The version number is the harness's: how the desktop is presented to the planner and how actions are carried out. Numbers from different versions are not comparable.",
   "versions": [
     {
       "suite_version": "diag-v19",
@@ -27,8 +27,44 @@
       "hands_commit": "f1df118",
       "suite_hash": "5eec62a0c662",
       "date": "2026-09-26",
-      "status": "current",
+      "status": "frozen",
       "changes": "a colon after an ASCII word (\"Status: final，\") is not dictation, so \"final，\" is no longer offered as a value to type"
+    },
+    {
+      "suite_version": "diag-v22",
+      "harness_version": 22,
+      "hands_commit": "1c3f47d",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-09-27",
+      "status": "frozen",
+      "changes": "timing-only harness changes: staging polls instead of sleeping for fixed times, no button-by-button alert fallback when there is no dialog, the permission probe can be skipped by the host"
+    },
+    {
+      "suite_version": "diag-v23",
+      "harness_version": 23,
+      "hands_commit": "713961b",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-09-27",
+      "status": "frozen",
+      "changes": "value options include whole record lines (in the shape of the goal's template, or separated cells with an identifier), so a record can be copied whole"
+    },
+    {
+      "suite_version": "diag-v24",
+      "harness_version": 24,
+      "hands_commit": "4d12033",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-09-27",
+      "status": "frozen",
+      "changes": "staging no longer launches TextEdit bare to close its documents (a bare launch left a hidden Open panel), and TextEdit is launched without state restoration"
+    },
+    {
+      "suite_version": "diag-v25",
+      "harness_version": 25,
+      "hands_commit": "3d54492",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-09-28",
+      "status": "current",
+      "changes": "a write refused as already done refuses only that text (dropped from the value options), no longer every way to write the field"
     }
   ]
 }

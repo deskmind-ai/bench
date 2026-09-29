@@ -8,6 +8,10 @@ Compare numbers only within one harness version (see [versions.md](versions.md))
 
 | harness | config | system | strict pass | env errors | partial | false DONE | step p50 / p95 |
 |---|---|---|---|---|---|---|---|
+| v25 | router-g14-q8 | DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g14, 8-bit | 36/39 (92%) | 0 | – | 0 | 0.57 / 5.25 s |
+| v25 | router-g17-q8 | DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g17, 8-bit | 36/39 (92%) | 0 | – | 3 | n/a |
+| v23 | router-g14-q8 | DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g14, 8-bit | 35/38 (92%) | 1 | – | 0 | 0.59 / 4.60 s |
+| v23 | jev | Jev (TypeSafe AI), hosted System One API (cloud reference) | 33/38 (87%) | 1 | – | 2 | 0.36 / 0.44 s |
 | v21 | router-v7b | DeskMind Brain two-tier router (0.8B → 4B), revision v7b | 32/39 (82%) | 0 | 0.86 | 2 | 3.26 / 5.55 s |
 | v20 | jev | Jev (TypeSafe AI), hosted System One API (cloud reference) | 33/39 (85%) | 0 | 0.88 | 0 | 0.37 / 0.45 s |
 | v20 | router-v7 | DeskMind Brain two-tier router (0.8B → 4B), revision v7 | 29/39 (74%) | 0 | 0.77 | 3 | 3.17 / 7.28 s |
@@ -17,6 +21,8 @@ Compare numbers only within one harness version (see [versions.md](versions.md))
 | v19 | jev | Jev (TypeSafe AI), hosted System One API (cloud reference) | 31/37 (84%) | 2 | 0.85 | 2 | 0.98 / 1.26 s |
 
 ## Per task
+
+The v23 and v25 configs are reported as aggregates only and have no per-task column.
 
 | task | v21 router-v7b | v20 jev | v20 router-v7 | v19 router-v7 | v19 g11b-4B | v19 g10b-4B | v19 jev |
 |---|---|---|---|---|---|---|---|
@@ -37,6 +43,9 @@ Compare numbers only within one harness version (see [versions.md](versions.md))
 
 Notes:
 
+- v25 router-g14-q8: G03 is the only failing task.
+- v25 router-g17-q8: the three false DONEs are on G10; step latency is not comparable (measured while the GPU had other load).
+- v23 router-g14-q8 and v23 jev: one G09 run ended in an environment error and is excluded from the score; a rerun of G09 passed 3/3 (not pooled). The two jev false DONEs are on G02.
 - v19 g10b-4B: assembled from three rounds: one repeat, two repeats, and a rerun of G10-G13 whose round-one runs ended in environment errors; step latency is not pooled across rounds.
 - v19 jev: G05: two of three runs ended in environment errors and are excluded from the score.
 - Step latency is the planner's time per decision, measured by the harness; the local configs ran on an Apple M4 Pro (48 GB).

@@ -59,6 +59,10 @@ class SuiteTests(unittest.TestCase):
     def test_reference_totals_add_up(self):
         ref = json.loads((REPO / "results" / "reference.json").read_text(encoding="utf-8"))
         for c in ref["configs"]:
+            self.assertEqual(c["scored"] + c["env_errors"], c["runs"], c["label"])
+            self.assertLessEqual(c["passed"], c["scored"], c["label"])
+            if "per_task" not in c:                # reported as aggregates only
+                continue
             self.assertEqual(sum(p["passed"] for p in c["per_task"].values()), c["passed"], c["label"])
             self.assertEqual(sum(p["scored"] for p in c["per_task"].values()), c["scored"], c["label"])
             self.assertEqual(set(c["per_task"]), set(TASKS))

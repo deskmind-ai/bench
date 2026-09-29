@@ -58,7 +58,7 @@ pip install -e .
 deskmind-bench verify                  # every task: its effect oracle passes, doing nothing fails
 deskmind-bench hash                    # 5eec62a0c662 -- the suite hash of the reference results
 deskmind-bench versions                # harness versions and their commits
-deskmind-bench score path/to/runs/ --suite-version diag-v21 --out mine.json   # regrade finished runs from disk
+deskmind-bench score path/to/runs/ --suite-version diag-v25 --out mine.json   # regrade finished runs from disk
 deskmind-bench table mine.json         # per-task passes as a markdown table
 ```
 
@@ -83,6 +83,10 @@ Real macOS desktop, 13 tasks × 3 runs, projection layer on, strict pass. Full p
 
 | harness | config | strict pass | false DONE | step p50 |
 |---|---|---|---|---|
+| v25 | DeskMind Brain router (0.8B → 4B), 4B g14, 8-bit | **36/39 (92%)** | 0 | 0.57 s |
+| v25 | DeskMind Brain router, 4B g17, 8-bit | 36/39 (92%) | 3 | n/a |
+| v23 | DeskMind Brain router, 4B g14, 8-bit | **35/38 (92%)**, 1 env error | 0 | 0.59 s |
+| v23 | Jev (TypeSafe AI, cloud reference) | 33/38 (87%), 1 env error | 2 | 0.36 s |
 | v21 | DeskMind Brain router (0.8B → 4B), rev. v7b | **32/39 (82%)** | 2 | 3.3 s |
 | v20 | Jev (TypeSafe AI, cloud reference) | 33/39 (85%) | 0 | 0.4 s |
 | v20 | DeskMind Brain router, rev. v7 | 29/39 (74%) | 3 | 3.2 s |
@@ -93,7 +97,7 @@ Real macOS desktop, 13 tasks × 3 runs, projection layer on, strict pass. Full p
 
 ## Versions
 
-The tasks, fixtures and graders are the same in all three versions (suite hash `5eec62a0c662`). What changed is the
+The tasks, fixtures and graders are the same in all versions (suite hash `5eec62a0c662`). What changed is the
 harness: how the desktop is shown to the planner and how actions are carried out.
 [results/versions.md](results/versions.md) (and `versions.json`) lists what changed in each.
 
@@ -101,7 +105,11 @@ harness: how the desktop is shown to the planner and how actions are carried out
 |---|---|---|---|
 | diag-v19 | `3aee984` | `5eec62a0c662` | frozen |
 | diag-v20 | `7934cfa` | `5eec62a0c662` | superseded |
-| diag-v21 | `f1df118` | `5eec62a0c662` | current |
+| diag-v21 | `f1df118` | `5eec62a0c662` | frozen |
+| diag-v22 | `1c3f47d` | `5eec62a0c662` | frozen |
+| diag-v23 | `713961b` | `5eec62a0c662` | frozen |
+| diag-v24 | `4d12033` | `5eec62a0c662` | frozen |
+| diag-v25 | `3d54492` | `5eec62a0c662` | current |
 
 ## Read the numbers with care
 
@@ -113,8 +121,8 @@ harness: how the desktop is shown to the planner and how actions are carried out
   tasks. Compare only within one version.
 - **macOS only**, on one machine (Apple M4 Pro, macOS 27, zh-Hans locale, Peekaboo 4.3.0). The tasks are written in
   Chinese; other locales and OS versions are untested.
-- **Two tasks are unsolved by every config:** G03 (read a table from a web page) and G05 (ask before acting). No
-  config on this list passes more than 11 of the 13 tasks.
+- **G03 (read a table from a web page) is unsolved by every config.** G05 (ask before acting) was unsolved by every
+  config up to v21; the v25 g14 router passes every task except G03.
 - **The suite is public.** Anyone can train on these tasks. Our own training tasks are generated separately and never
   include them.
 

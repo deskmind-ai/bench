@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use DeskMind Bench, please cite it as below, and name the suite version (e.g. diag-v23) and harness commit you ran."
+title: "DeskMind Bench: a real-desktop benchmark for computer-use agents"
+type: software
+authors:
+  - name: "The DeskMind authors"
+repository-code: "https://github.com/deskmind-ai/bench"
+url: "https://huggingface.co/datasets/deskmind/bench-v23"
+license: Apache-2.0
+version: 0.1.0
+date-released: "2026-09-28"
+keywords:
+  - computer-use
+  - agents
+  - benchmark
+  - macos
