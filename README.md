@@ -69,7 +69,8 @@ and step latency. It never imports the driver.
 Executing runs needs a Mac with DeskMind Hands, Peekaboo and its permissions, and a planner behind `/v1/systemone`:
 
 ```bash
-pip install -e ".[run]"                # adds deskmind-hands
+git clone https://github.com/deskmind-ai/hands ../hands   # next to this checkout, as hands expects bench
+pip install -e ../hands -e ".[run]"    # adds deskmind-hands
 deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my-planner --out my-planner.json
 ```
 

@@ -38,4 +38,4 @@ build-backend = "hatchling.build"
 packages = ["deskmind_bench"]
 
 [tool.uv.sources]
-deskmind-hands = { git = "https://github.com/deskmind-ai/hands" }
+deskmind-hands = { path = "../hands", editable = true }

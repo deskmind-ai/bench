@@ -63,7 +63,8 @@ deskmind-bench table mine.json         # 每个任务的通过数，输出 markd
 执行运行需要一台装了 DeskMind Hands、Peekaboo 并授予权限的 Mac，以及一个提供 `/v1/systemone` 的规划模型：
 
 ```bash
-pip install -e ".[run]"                # 会装上 deskmind-hands
+git clone https://github.com/deskmind-ai/hands ../hands   # 放在本仓库旁边，hands 也按这个布局找 bench
+pip install -e ../hands -e ".[run]"    # 会装上 deskmind-hands
 deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my-planner --out my-planner.json
 ```
 
