@@ -8,7 +8,8 @@ Compare numbers only within one harness version (see [versions.md](versions.md))
 
 | harness | config | system | strict pass | env errors | partial | false DONE | step p50 / p95 |
 |---|---|---|---|---|---|---|---|
-| v25 | router-g14-q8 | DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g14, 8-bit | 36/39 (92%) | 0 | – | 0 | 0.57 / 5.25 s |
+| v25 | **router-g18b-q8** (current) | DeskMind Brain two-tier router (0.8B → 4B), checkpoint g18b, 8-bit, threshold 0.96 | **39/39 (100%)** | 0 | 1.00 | 0 | 2.85 / 9.82 s |
+| v25 | router-g14-q8 (previous) | DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g14, 8-bit | 36/39 (92%) | 0 | – | 0 | 0.57 / 5.25 s |
 | v25 | router-g17-q8 | DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g17, 8-bit | 36/39 (92%) | 0 | – | 3 | n/a |
 | v23 | router-g14-q8 | DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g14, 8-bit | 35/38 (92%) | 1 | – | 0 | 0.59 / 4.60 s |
 | v23 | jev | Jev (TypeSafe AI), hosted System One API (cloud reference) | 33/38 (87%) | 1 | – | 2 | 0.36 / 0.44 s |
@@ -22,27 +23,28 @@ Compare numbers only within one harness version (see [versions.md](versions.md))
 
 ## Per task
 
-The v23 and v25 configs are reported as aggregates only and have no per-task column.
+The other v23 and v25 configs are reported as aggregates only and have no per-task column.
 
-| task | v21 router-v7b | v20 jev | v20 router-v7 | v19 router-v7 | v19 g11b-4B | v19 g10b-4B | v19 jev |
-|---|---|---|---|---|---|---|---|
-| G01-finder-sort | 3/3 | 3/3 | 3/3 | 1/3 | 0/3 | 3/3 | 3/3 |
-| G02-textedit-edit | 3/3 | 3/3 | 0/3 | 3/3 | 0/3 | 3/3 | 1/3 |
-| G03-safari-extract | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 |
-| G04-chinese-exact | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| G05-ambiguity-ask | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/1 +2 env |
-| G06-wrong-target | 2/3 | 3/3 | 2/3 | 2/3 | 3/3 | 0/3 | 3/3 |
-| G07-finder-newfolder | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| G08-finder-move-one | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| G09-finder-navigate-down | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 |
-| G10-finder-navigate-up | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 +1 env | 3/3 |
-| G11-long-scroll | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 +1 env | 3/3 |
-| G12-cancel-midway | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 +1 env | 3/3 |
-| G13-roundtrip | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 +1 env | 3/3 |
-| **all** | **32/39** | **33/39** | **29/39** | **30/39** | **27/39** | **24/39** | **31/37** |
+| task | v25 router-g18b-q8 | v21 router-v7b | v20 jev | v20 router-v7 | v19 router-v7 | v19 g11b-4B | v19 g10b-4B | v19 jev |
+|---|---|---|---|---|---|---|---|---|
+| G01-finder-sort | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 0/3 | 3/3 | 3/3 |
+| G02-textedit-edit | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 | 0/3 | 3/3 | 1/3 |
+| G03-safari-extract | 3/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 |
+| G04-chinese-exact | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| G05-ambiguity-ask | 3/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/3 | 0/1 +2 env |
+| G06-wrong-target | 3/3 | 2/3 | 3/3 | 2/3 | 2/3 | 3/3 | 0/3 | 3/3 |
+| G07-finder-newfolder | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| G08-finder-move-one | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| G09-finder-navigate-down | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 |
+| G10-finder-navigate-up | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 +1 env | 3/3 |
+| G11-long-scroll | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 +1 env | 3/3 |
+| G12-cancel-midway | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 +1 env | 3/3 |
+| G13-roundtrip | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 +1 env | 3/3 |
+| **all** | **39/39** | **32/39** | **33/39** | **29/39** | **30/39** | **27/39** | **24/39** | **31/37** |
 
 Notes:
 
+- v25 router-g18b-q8: run through the DeskMind app (hands 694eb97, optional checks and notes off). G04 passed 3/3, but the planner never said DONE after the goal was reached and each run used its 20-action budget. The run recorded suite hash cce33453b14b: after the graders moved, the hash had stopped covering them; recomputed over the same tasks, fixtures and graders it is 5eec62a0c662.
 - v25 router-g14-q8: G03 is the only failing task.
 - v25 router-g17-q8: the three false DONEs are on G10; step latency is not comparable (measured while the GPU had other load).
 - v23 router-g14-q8 and v23 jev: one G09 run ended in an environment error and is excluded from the score; a rerun of G09 passed 3/3 (not pooled). The two jev false DONEs are on G02.

@@ -6,6 +6,96 @@
     {
       "suite_version": "diag-v25",
       "suite_hash": "5eec62a0c662",
+      "label": "router-g18b-q8",
+      "system": "DeskMind Brain two-tier router (0.8B → 4B), checkpoint g18b, 8-bit, routing threshold 0.96",
+      "runs_on": "local, Apple M4 Pro, through the DeskMind app",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 39,
+      "env_errors": 0,
+      "passed": 39,
+      "strict": 1.0,
+      "partial": 1.0,
+      "false_done": 0,
+      "no_progress_loops": 0,
+      "step_latency_s": {
+        "p50": 2.85,
+        "p95": 9.82
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      },
+      "note": "current release; hands 694eb97, optional checks and notes off; G04 passed 3/3 but the planner never said DONE after the goal was reached (each run used its 20-action budget); the run recorded suite hash cce33453b14b because the hash had stopped covering the graders after they moved, recomputed as 5eec62a0c662 (same tasks, fixtures and graders)"
+    },
+    {
+      "suite_version": "diag-v25",
+      "suite_hash": "5eec62a0c662",
       "label": "router-g14-q8",
       "system": "DeskMind Brain two-tier router (0.8B → 4B), 4B checkpoint g14, 8-bit",
       "runs_on": "local, Apple M4 Pro",
@@ -24,7 +114,7 @@
         "p95": 5.25
       },
       "rounds": 1,
-      "note": "aggregates only; the only failing task is G03"
+      "note": "previous release; aggregates only; the only failing task is G03"
     },
     {
       "suite_version": "diag-v25",
