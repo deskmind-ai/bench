@@ -84,7 +84,8 @@ Real macOS desktop, 13 tasks × 3 runs, projection layer on, strict pass. Full p
 
 | harness | config | strict pass | false DONE | step p50 |
 |---|---|---|---|---|
-| v25 | DeskMind Brain router (0.8B → 4B), 4B g14, 8-bit | **36/39 (92%)** | 0 | 0.57 s |
+| v25 | DeskMind Brain router (0.8B → 4B), g18b, 8-bit, threshold 0.96 (current) | **39/39 (100%)** | 0 | 2.85 s¹ |
+| v25 | DeskMind Brain router (0.8B → 4B), 4B g14, 8-bit | 36/39 (92%) | 0 | 0.57 s |
 | v25 | DeskMind Brain router, 4B g17, 8-bit | 36/39 (92%) | 3 | n/a |
 | v23 | DeskMind Brain router, 4B g14, 8-bit | **35/38 (92%)**, 1 env error | 0 | 0.59 s |
 | v23 | Jev (TypeSafe AI, cloud reference) | 33/38 (87%), 1 env error | 2 | 0.36 s |
@@ -95,6 +96,9 @@ Real macOS desktop, 13 tasks × 3 runs, projection layer on, strict pass. Full p
 | v19 | DeskMind Brain 4B, g11b | 27/39 (69%) | 3 | 3.4 s |
 | v19 | DeskMind Brain 4B, g10b | 24/39 (62%) | 7 | – |
 | v19 | Jev (TypeSafe AI, cloud reference) | 31/37 (84%), 2 env errors | 2 | 1.0 s |
+
+¹ Run through the DeskMind app, whose step time includes the app's own checks and the second model on the steps it
+reviews; the other rows ran from the command line. p95 9.82 s.
 
 ## Versions
 
@@ -122,8 +126,9 @@ harness: how the desktop is shown to the planner and how actions are carried out
   tasks. Compare only within one version.
 - **macOS only**, on one machine (Apple M4 Pro, macOS 27, zh-Hans locale, Peekaboo 4.3.0). The tasks are written in
   Chinese; other locales and OS versions are untested.
-- **G03 (read a table from a web page) is unsolved by every config.** G05 (ask before acting) was unsolved by every
-  config up to v21; the v25 g14 router passes every task except G03.
+- **G03 (read a table from a web page) and G05 (ask before acting)** were unsolved by every config up to v21. The v25
+  g14 router passed every task except G03; the v25 g18b router passes all thirteen, 3/3 each. With n = 3 that is not
+  proof that G03 is solved for good: treat it as "no longer failing on this suite".
 - **The suite is public.** Anyone can train on these tasks. Our own training tasks are generated separately and never
   include them.
 

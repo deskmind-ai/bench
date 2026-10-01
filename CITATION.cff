@@ -5,7 +5,7 @@ type: software
 authors:
   - name: "The DeskMind authors"
 repository-code: "https://github.com/deskmind-ai/bench"
-url: "https://huggingface.co/datasets/deskmind/bench-v23"
+url: "https://github.com/deskmind-ai/bench"
 license: Apache-2.0
 version: 0.1.0
 date-released: "2026-09-28"
