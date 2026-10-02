@@ -21,6 +21,8 @@ deskmind-bench hash                       # 未改动的仓库必须输出 5eec6
 
 ## 如何新增任务
 
+第一次贡献？[30 分钟新增一个任务](docs/adding-a-task.zh-CN.md) 用一个真实的候选任务从头走一遍。
+
 新任务放进单独的任务集 `tasks/proposals/`，不要放进 `tasks/diag/`。diag 的任务、它用到的 fixture 或评分器只要改一处，套件哈希就会变，已发布的所有数字都不再可比。候选任务由维护者统一升级为新的套件版本，并重新跑参考成绩。
 
 先开一个 **New task proposal** issue。表单会问这个任务测什么、为什么走捷径过不了，大多数提案就是在这一步变好的。

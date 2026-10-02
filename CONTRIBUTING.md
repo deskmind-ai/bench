@@ -26,6 +26,8 @@ deskmind-bench hash                       # must print 5eec62a0c662 on an unchan
 
 ## How to add a task
 
+New here? [Add a task in 30 minutes](docs/adding-a-task.md) walks through a real proposal end to end.
+
 New tasks go into their own set, `tasks/proposals/`, never into `tasks/diag/`. Any change to a diag task, a fixture
 it uses or a grader changes the suite hash, and every published number stops being comparable. Proposals are promoted
 into a new suite version by the maintainers, all at once, with new reference runs.

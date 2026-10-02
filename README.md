@@ -119,7 +119,8 @@ harness: how the desktop is shown to the planner and how actions are carried out
 ## Read the numbers with care
 
 - **n = 3 per task.** Thirteen tasks × three runs is 39 runs. One run is 2.6 points, and a difference of one or two
-  runs between configs is noise.
+  runs between configs is noise. Thirteen tasks is the thinnest part of this benchmark: help grow it with
+  [Add a task in 30 minutes](docs/adding-a-task.md).
 - **Runs cluster by task.** Almost every task passes 3/3 or 0/3, so the effective sample is closer to 13 tasks than to
   39 runs. Read the per-task table, not only the total, and use a task-level (clustered) bootstrap for intervals.
 - **Results depend on the harness version.** The same planner scored 30/39 on v19 and 29/39 on v20 with identical

@@ -1,0 +1,26 @@
+# The worked example in docs/adding-a-task.md: copy, not move. A model that "puts report.txt into backup" by
+# dragging it moves it, and the original is gone; one that uses Finder's Duplicate leaves "report copy.txt" behind.
+id: P01-finder-copy
+title: Finder 复制一个文件到子文件夹（不是移动）
+surface: finder
+tags: [proposal, finder]
+app: com.apple.finder
+goal: |
+  把工作目录里的 report.txt 复制一份到 backup 文件夹里。原来的 report.txt 要留在原处，不要改动其他文件。
+fixture: proposal_copy
+budget: {max_actions: 15, wall_clock_s: 600}
+sentinels: ["$WS/keep/reference.txt", "$WS/notes.txt", "$WS/backup/README.txt"]
+grade:
+  checkpoints:
+    - name: copied
+      critical: true
+      check: {file_text_equals: {path: "$WS/backup/report.txt", value: "Q3 report\nrevenue: 1240\n"}}
+  guards:
+    # Holds for an untouched folder too, so it earns nothing; it only stops a move from counting as a copy.
+    - {file_text_equals: {path: "$WS/report.txt", value: "Q3 report\nrevenue: 1240\n"}}
+  forbid:
+    - {file_exists: {path: "$WS/report copy.txt"}}
+    - {file_exists: {path: "$WS/report 副本.txt"}}
+    - {file_exists: {path: "$WS/backup/report copy.txt"}}
+oracle_effect:
+  - cp report.txt backup/report.txt
