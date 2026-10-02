@@ -1,0 +1,33 @@
+name: ci
+
+# Everything that needs no Mac, no driver and no model: the unit tests, every task's self-check (the oracle reaches
+# strict success, doing nothing scores 0), and the suite hash, which must not move without a new suite version.
+# Linux on purpose: scoring and verifying are platform-independent.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e .
+      - name: unit tests
+        run: python -m unittest discover -s tests -v
+      - name: diag tasks verify
+        run: deskmind-bench verify --set diag
+      - name: proposals verify
+        run: deskmind-bench verify --set proposals
+      - name: suite hash unchanged
+        run: test "$(deskmind-bench hash)" = "5eec62a0c662"
