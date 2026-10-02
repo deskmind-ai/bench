@@ -106,6 +106,11 @@ The tasks, fixtures and graders are the same in all versions (suite hash `5eec62
 harness: how the desktop is shown to the planner and how actions are carried out.
 [results/versions.md](results/versions.md) (and `versions.json`) lists what changed in each.
 
+The hands commits below are from DeskMind Hands' development history, which was rebuilt into a single public commit
+on 2026-10-02: they name each version but cannot be checked out, so the older reference numbers cannot be rerun
+exactly. The public DeskMind Hands contains every change listed. New reference runs are made on it and published
+under a new harness version, with its commit.
+
 | suite version | hands commit | suite hash | status |
 |---|---|---|---|
 | diag-v19 | `3aee984` | `5eec62a0c662` | frozen |

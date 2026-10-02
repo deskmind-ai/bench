@@ -97,6 +97,8 @@ deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my
 所有版本的任务、fixture 和评分器完全相同（套件哈希 `5eec62a0c662`）。变的是 harness：桌面如何呈现给规划模型、动作如何执行。
 每个版本改了什么，见 [results/versions.md](results/versions.md)（以及 `versions.json`）。
 
+下表中的 hands 提交来自 DeskMind Hands 的开发历史，这段历史已在 2026-10-02 重建为一个公开提交：这些编号只用来标识版本，无法检出，所以较早的参考成绩不能原样重跑。公开的 DeskMind Hands 包含表中列出的全部改动；新的参考成绩会在它上面跑，作为新的 harness 版本发布，并注明提交。
+
 | 套件版本 | hands 提交 | 套件哈希 | 状态 |
 |---|---|---|---|
 | diag-v19 | `3aee984` | `5eec62a0c662` | 冻结 |
