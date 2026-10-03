@@ -15,6 +15,8 @@
   <a href="results/reference.md">结果</a> · <a href="results/versions.md">版本</a>
 </p>
 
+> 本仓库属于 **[DeskMind](https://github.com/deskmind-ai/deskmind)**：App、演示和其他组件都从那里开始。
+
 ---
 
 **DeskMind · 得心** —— *得心，应手。* 一组开源项目，让智能体在你自己的电脑上**看**屏幕、**想**下一步、**做**出操作，全部在本地完成。
@@ -90,7 +92,7 @@ deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my
 | v19 | DeskMind Brain 4B，g10b | 24/39（62%） | 7 | – |
 | v19 | Jev（TypeSafe AI，云端参考） | 31/37（84%），2 次环境错误 | 2 | 1.0 秒 |
 
-¹ 通过 DeskMind 应用运行，每步耗时包含应用自身的检查，以及第二个模型复核的那些步骤；其余各行在命令行中运行。p95 为 9.82 秒。
+¹ 通过 DeskMind 应用运行，每步耗时包含应用自身的检查，以及交给第二个模型回答的那些步骤；其余各行在命令行中运行。p95 为 9.82 秒。
 
 ## 版本
 

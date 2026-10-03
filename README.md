@@ -15,6 +15,8 @@
   <a href="results/reference.md">Results</a> · <a href="results/versions.md">Versions</a>
 </p>
 
+> Part of **[DeskMind](https://github.com/deskmind-ai/deskmind)**: start there for the app, the demo and the other components.
+
 ---
 
 **DeskMind · 得心** — *得心，应手。* (from 得心应手: what the mind decides, the hand carries out) is a family of
@@ -97,8 +99,8 @@ Real macOS desktop, 13 tasks × 3 runs, projection layer on, strict pass. Full p
 | v19 | DeskMind Brain 4B, g10b | 24/39 (62%) | 7 | – |
 | v19 | Jev (TypeSafe AI, cloud reference) | 31/37 (84%), 2 env errors | 2 | 1.0 s |
 
-¹ Run through the DeskMind app, whose step time includes the app's own checks and the second model on the steps it
-reviews; the other rows ran from the command line. p95 9.82 s.
+¹ Run through the DeskMind app, whose step time includes the app's own checks and the steps handed to the second
+model; the other rows ran from the command line. p95 9.82 s.
 
 ## Versions
 
