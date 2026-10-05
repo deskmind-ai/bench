@@ -1,0 +1,27 @@
+id: P02-textedit-replace-all
+title: TextEdit replace every occurrence and save
+surface: editor
+tags: [proposal, textedit, replace-all]
+app: com.apple.TextEdit
+goal: |
+  memo.txt is open in TextEdit. Replace every occurrence of Orion with Nova.
+  Keep all other text unchanged, save memo.txt, and leave other files untouched.
+fixture: proposal_replace
+reset_apps: [com.apple.TextEdit]
+stage: ['open -a TextEdit "$WS/memo.txt"']
+budget: {max_actions: 25, wall_clock_s: 900}
+sentinels: ["$WS/keep/reference.txt"]
+grade:
+  checkpoints:
+    - name: every_occurrence_replaced
+      critical: true
+      check:
+        file_text_equals:
+          path: "$WS/memo.txt"
+          value: |
+            Project Nova is ready for review.
+            The Nova checklist has three steps.
+            Archive the Nova notes after approval.
+oracle_effect:
+  - |
+    printf 'Project Nova is ready for review.\nThe Nova checklist has three steps.\nArchive the Nova notes after approval.\n' > memo.txt
