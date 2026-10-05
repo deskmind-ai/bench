@@ -5,7 +5,8 @@ number from this repository still mean exactly what it says? The org-wide guidel
 ([deskmind-ai/.github](https://github.com/deskmind-ai/.github)) apply here too, including the
 [code of conduct](https://github.com/deskmind-ai/.github/blob/main/CODE_OF_CONDUCT.md).
 
-The two most useful contributions are a new task and a results submission. Both have an issue form.
+The two most useful contributions are a new task and a results submission. Both have an issue form on [the DeskMind hub](https://github.com/deskmind-ai/deskmind/issues), where all
+DeskMind issues go; PRs come here.
 
 ## Set up
 
@@ -32,7 +33,7 @@ New tasks go into their own set, `tasks/proposals/`, never into `tasks/diag/`. A
 it uses or a grader changes the suite hash, and every published number stops being comparable. Proposals are promoted
 into a new suite version by the maintainers, all at once, with new reference runs.
 
-Open a **New task proposal** issue first. It asks what the task tests and why a shortcut cannot solve it, which is
+Open a [**New task proposal**](https://github.com/deskmind-ai/deskmind/issues/new?template=bench_new_task.yml) issue first. It asks what the task tests and why a shortcut cannot solve it, which is
 where most proposals are improved.
 
 **1. The fixture.** A directory under `fixtures/<name>/` that is unpacked into a fresh sandbox folder (`$WS`) before
@@ -84,7 +85,7 @@ it wants unambiguously, unless ambiguity is the point; and its grader checks the
 
 ## How to submit results
 
-Open a **Results submission** issue, then a PR that adds two files under `results/community/<suite_version>/`:
+Open a [**Results submission**](https://github.com/deskmind-ai/deskmind/issues/new?template=bench_results_submission.yml) issue, then a PR that adds two files under `results/community/<suite_version>/`:
 
 - `<label>.json`: the entry described below;
 - `<label>.summary.json`: the summary `deskmind-bench run` wrote (or `deskmind-bench score`, if you regraded runs).

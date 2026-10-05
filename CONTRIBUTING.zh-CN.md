@@ -2,7 +2,7 @@
 
 感谢参与！得心 Bench 是成绩的最终评分方，所以所有改动都用同一个标准衡量：改完之后，这个仓库给出的每个数字是否仍然准确表达它声称的含义？组织层面的通用规范（[deskmind-ai/.github](https://github.com/deskmind-ai/.github)）在这里同样适用，包括[行为准则](https://github.com/deskmind-ai/.github/blob/main/CODE_OF_CONDUCT.md)。
 
-最有价值的两类贡献是新任务和成绩提交，两者都有对应的 issue 表单。
+最有价值的两类贡献是新任务和成绩提交，两者都有对应的 issue 表单，在 [DeskMind 主仓库](https://github.com/deskmind-ai/deskmind/issues)：所有 issue 都提到那里，PR 仍然提到本仓库。
 
 ## 环境
 
@@ -25,7 +25,7 @@ deskmind-bench hash                       # 未改动的仓库必须输出 5eec6
 
 新任务放进单独的任务集 `tasks/proposals/`，不要放进 `tasks/diag/`。diag 的任务、它用到的 fixture 或评分器只要改一处，套件哈希就会变，已发布的所有数字都不再可比。候选任务由维护者统一升级为新的套件版本，并重新跑参考成绩。
 
-先开一个 **New task proposal** issue。表单会问这个任务测什么、为什么走捷径过不了，大多数提案就是在这一步变好的。
+先开一个 [**New task proposal**](https://github.com/deskmind-ai/deskmind/issues/new?template=bench_new_task.yml) issue。表单会问这个任务测什么、为什么走捷径过不了，大多数提案就是在这一步变好的。
 
 **1. Fixture。** `fixtures/<name>/` 下的一个目录，每次运行前解包到一个全新的沙箱目录（`$WS`）。保持小巧、以纯文本为主。和所有 diag fixture 一样，放一个 `keep/reference.txt` 作为哨兵文件。
 
@@ -64,7 +64,7 @@ deskmind-bench verify --set proposals
 
 ## 如何提交成绩
 
-先开一个 **Results submission** issue，再提一个 PR，在 `results/community/<suite_version>/` 下新增两个文件：
+先开一个 [**Results submission**](https://github.com/deskmind-ai/deskmind/issues/new?template=bench_results_submission.yml) issue，再提一个 PR，在 `results/community/<suite_version>/` 下新增两个文件：
 
 - `<label>.json`：下文描述的成绩条目；
 - `<label>.summary.json`：`deskmind-bench run` 写出的汇总（如果你重新评分过，则是 `deskmind-bench score` 的输出）。
