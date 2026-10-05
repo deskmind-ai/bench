@@ -63,8 +63,17 @@
       "hands_commit": "3d54492",
       "suite_hash": "5eec62a0c662",
       "date": "2026-09-28",
-      "status": "current",
+      "status": "frozen",
       "changes": "a write refused as already done refuses only that text (dropped from the value options), no longer every way to write the field"
+    },
+    {
+      "suite_version": "diag-v26",
+      "harness_version": 26,
+      "hands_commit": "11368c6",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-10-05",
+      "status": "current",
+      "changes": "the first version on the public DeskMind Hands (the harness of the DeskMind app 0.4.0): every change in v25, plus the check before DONE, approvals asked by the harness before sending, deleting, paying, publishing and sharing, choice questions kept within the protocol's 1..255 options, and at most 40 dropdown options in the state and the SELECT head (none of the diag tasks has that many)"
     }
   ]
 }
