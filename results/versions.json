@@ -72,8 +72,17 @@
       "hands_commit": "11368c6",
       "suite_hash": "5eec62a0c662",
       "date": "2026-10-05",
-      "status": "current",
+      "status": "frozen",
       "changes": "the first version on the public DeskMind Hands (the harness of the DeskMind app 0.4.0): every change in v25, plus the check before DONE, approvals asked by the harness before sending, deleting, paying, publishing and sharing, choice questions kept within the protocol's 1..255 options, and at most 40 dropdown options in the state and the SELECT head (none of the diag tasks has that many)"
+    },
+    {
+      "suite_version": "diag-v27",
+      "harness_version": 27,
+      "hands_commit": "89be730",
+      "suite_hash": "5eec62a0c662",
+      "date": "2026-10-06",
+      "status": "current",
+      "changes": "every change in v26, plus: no Dock tiles (the run's process is no longer registered with LaunchServices: input source, key events and the front app are read in a child or from the window server); a REPLACE_TEXT whose new value holds the whole field rewrites it rather than splicing it in; cmd+A / cmd+V by the letter on the user's keyboard layout; unknown keys in apps.yaml are an error; elements named from the AX role released Peekaboo sends"
     }
   ]
 }
