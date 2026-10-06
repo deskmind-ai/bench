@@ -300,6 +300,31 @@ class Runner(unittest.TestCase):
         self.assertEqual([(r["k"], r["reference"]) for r in rows], [(1, "part1"), (2, "part2"), (3, "part3")])
         self.assertIn("资料", rows[0]["clause"])
 
+    def test_what_the_user_says_before_a_part_is_heard_before_it_runs(self):
+        """bench#17 review (UA2): "第三件不用做了", said before the third part, was read only after the part had been
+        done. It is heard before the part runs, at a decision point of its own, and a stop leaves the part undone."""
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        t = self.task([{"id": "u2", "type": "user_amend", "trigger": {"before_subgoal": "part3"},
+                        "effect": [{"user_says": "第三件不用做了"}]}])
+        seen = []
+        fn = executor()
+        out, ev, ch, fn = self.go(t, ws, lambda ctx: seen.append((ctx.outcome, ctx.signals, list(ctx.said))) or "stop", fn)
+        self.assertEqual(len(fn.calls), 2, "the third part never ran")
+        self.assertEqual(seen[0][0], "not_started")
+        self.assertEqual(seen[0][1], ["user_interjected"])
+        self.assertIn("第三件不用做了", seen[0][2])
+        self.assertTrue((ws / "backup" / "记录-30.txt").exists())
+        self.assertEqual(out["state"], "stopped")
+
+    def test_a_continue_before_a_part_runs_it(self):
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        t = self.task([{"id": "u4", "type": "user_amend", "trigger": {"before_subgoal": "part2"},
+                        "effect": [{"user_says": "继续吧"}]}])
+        fn = executor()
+        out, _, _, fn = self.go(t, ws, lambda ctx: "continue", fn)
+        self.assertEqual(len(fn.calls), 3)
+        self.assertEqual(out["state"], "completed")
+
     def test_at_checkpoint_fires_after_the_part_that_passes_it(self):
         from deskmind_bench.task import Checkpoint
         ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
