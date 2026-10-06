@@ -8,6 +8,7 @@ from . import signals as sig
 from .decide import Context, by_code
 from .events import EventLog
 from .plan import Plan
+from .plan_model import PlanFailed
 
 
 @dataclass
@@ -73,11 +74,25 @@ def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, ca
          hooks) -> dict:
     hooks.at_start()
     started: list[str] = []          # clauses in the order they were first started: before_subgoal's k
-    plan = planner.plan(goal, channel)
     said: list[str] = []
+    turns = [0]
+    try:
+        plan = planner.plan(goal, channel, ws=ws, said=said)
+        # A planner that cannot plan without the user asks first (a model planner on an open goal: "按什么整理？").
+        while plan.question and turns[0] < budget.max_dialogue_turns:
+            log.ask("clarify", plan.question, [])
+            hooks.on_ask("clarify", plan.question)
+            reply, _, slot = user.respond(plan.question)
+            log.user_msg("reply", reply, slot)
+            turns[0] += 1
+            said.append(reply)
+            plan = planner.plan(goal, channel, ws=ws, said=said)
+    except PlanFailed as exc:   # never run a plan the checks refused
+        return log.done("failed", f"计划没有通过检查：{exc}")
+    if plan.question:
+        return log.done("stopped", f"还缺信息，没有开始：{plan.question}")
     log.plan_proposed(plan.version, planner.by, [s.to_event() for s in plan.subgoals], plan.writes())
     confirmed: list[dict] = []
-    turns = [0]
     if not _confirm(plan, confirmed, user, log, turns, hooks):
         return log.done("stopped", "用户没有同意计划，什么都没做。")
     used, replans, repairs, done_goals, skipped, total_parts = 0, 0, {}, [], [], len(plan.subgoals)
@@ -134,7 +149,11 @@ def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, ca
             continue
         if choice == "replan":
             replans += 1
-            plan = planner.replan(goal, plan, said)
+            try:
+                plan = planner.replan(goal, plan, said, ws=ws, why=", ".join(sigs) or res.outcome,
+                                      done=list(done_goals))
+            except PlanFailed as exc:
+                return log.done("failed", f"修改后的计划没有通过检查：{exc}；已完成：{'；'.join(done_goals) or '无'}")
             total_parts = len(done_goals) + len(skipped) + len(plan.subgoals)
             log.plan_proposed(plan.version, planner.by, [s.to_event() for s in plan.subgoals], plan.writes())
             if not _confirm(plan, confirmed, user, log, turns, hooks):
