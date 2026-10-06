@@ -316,6 +316,18 @@ class Runner(unittest.TestCase):
         self.assertTrue((ws / "backup" / "记录-30.txt").exists())
         self.assertEqual(out["state"], "stopped")
 
+    def test_a_question_before_a_part_does_not_say_it_failed(self):
+        """bench#18 review: the pre-part ask said the part 没有按预期完成 before it had run."""
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        t = self.task([{"id": "u3", "type": "user_amend", "trigger": {"before_subgoal": "part2"},
+                        "effect": [{"user_says": "改名那件先等等"}]}])
+        answers = iter(["ask", "stop"])
+        _, ev, _, _ = self.go(t, ws, lambda ctx: next(answers))
+        asked = [e["text"] for e in ev if e["t"] == "ask" and e["kind"] == "clarify"]
+        self.assertEqual(len(asked), 1)
+        self.assertIn("还没开始", asked[0])
+        self.assertNotIn("没有按预期完成", asked[0])
+
     def test_a_continue_before_a_part_runs_it(self):
         ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
         t = self.task([{"id": "u4", "type": "user_amend", "trigger": {"before_subgoal": "part2"},

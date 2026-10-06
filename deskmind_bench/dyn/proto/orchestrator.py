@@ -181,7 +181,8 @@ def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, ca
                 return log.done("stopped", f"用户没有同意修改后的计划；已完成：{'；'.join(done_goals) or '无'}")
             continue
         if choice == "ask":
-            text = f"「{sg.goal}」没有按预期完成（{', '.join(sigs) or outcome}）。接下来怎么办？"
+            text = (f"还没开始做「{sg.goal}」，你刚才说的话会影响它。接下来怎么办？" if outcome == "not_started"
+                    else f"「{sg.goal}」没有按预期完成（{', '.join(sigs) or outcome}）。接下来怎么办？")
             log.ask("clarify", text, [])
             hooks.on_ask("clarify", text)
             reply, _, slot = user.respond(text)
