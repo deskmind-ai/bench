@@ -179,3 +179,67 @@ class Planner(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Fixes(unittest.TestCase):
+    """T7 dev findings (deskmind#62): a second JSON object, a folder as dst, a copy, small files' contents."""
+
+    def ws(self, *names):
+        import tempfile as _t
+        ws = Path(_t.mkdtemp(prefix="pm-fix-"))
+        for n in names:
+            if n.endswith("/"):
+                (ws / n).mkdir(parents=True, exist_ok=True)
+                continue
+            (ws / n).parent.mkdir(parents=True, exist_ok=True)
+            (ws / n).write_text(Path(n).name + "\n")
+        return ws
+
+    def test_parse_reads_the_first_object_and_ignores_what_follows(self):
+        from deskmind_bench.dyn.proto.plan_model import parse
+        self.assertEqual(parse('好的：{"ask": "按什么整理？"}\n{"parts": []}'), {"ask": "按什么整理？"})
+        with self.assertRaises(ValueError):
+            parse("no object")
+
+    def test_a_folder_as_dst_means_into_it(self):
+        from deskmind_bench.dyn.proto.plan_model import normalise
+        files = {"a.txt", "资料/", "b.txt"}
+        got = normalise([{"op": "move", "src": "a.txt", "dst": "资料"}, {"op": "mkdir", "dst": "新"},
+                         {"op": "move", "src": "b.txt", "dst": "新/"}, {"op": "move", "src": "x.txt", "dst": "y.txt"}], files)
+        self.assertEqual([w["dst"] for w in got], ["资料/a.txt", "新", "新/b.txt", "y.txt"])
+
+    def test_copy_is_checked_and_declared(self):
+        from deskmind_bench.dyn.proto.plan_model import dry_run
+        files = {"模板/", "模板/t.md"}
+        self.assertTrue(dry_run([{"op": "mkdir", "dst": "出"}, {"op": "copy", "src": "模板/t.md", "dst": "出/t.md"},
+                                 {"op": "move", "src": "出/t.md", "dst": "出/u.md"}], files).ok)
+        self.assertIn("is not there", dry_run([{"op": "copy", "src": "no.md", "dst": "x.md"}], files).problems[0])
+        self.assertIn("already exists", dry_run([{"op": "copy", "src": "模板/t.md", "dst": "模板/t.md"}], files).problems[0])
+
+    def test_the_planner_normalises_and_peeks_when_asked(self):
+        ws = self.ws("票-1.txt", "资料/")
+        (ws / "票-1.txt").write_text("金额：1200 元\n")
+        seen = []
+
+        def complete(msgs):
+            seen.append(msgs[-1]["content"])
+            return json.dumps({"parts": [{"goal": "移动", "writes": [{"op": "move", "src": "票-1.txt", "dst": "资料"}]}]})
+        plan = ModelPlanner(complete, peek_bytes=1024).plan("把大额的票放进资料", ws=ws)
+        self.assertEqual(plan.subgoals[0].writes[0]["dst"], "资料/票-1.txt")
+        self.assertIn("金额：1200 元", seen[0])
+        ModelPlanner(complete).plan("把大额的票放进资料", ws=ws)
+        self.assertNotIn("金额", seen[1], "no peek unless asked")
+
+    def test_a_declared_copy_is_carried_out_and_recorded(self):
+        from deskmind_bench.dyn.graders import write_steps
+        from deskmind_bench.dyn.proto.oplist import DeclaredWritesExecutor
+        from deskmind_bench.dyn.proto.plan import Subgoal
+        import tempfile as _t
+        ws = self.ws("模板/t.md")
+        run_dir = Path(_t.mkdtemp())
+        res = DeclaredWritesExecutor(run_dir).run(Subgoal("s1", "复制模板", writes=[{"op": "mkdir", "dst": "出"},
+                                                                                {"op": "copy", "src": "模板/t.md", "dst": "出/t.md"}]),
+                                                  ws, 10, None, None)
+        self.assertEqual(res.outcome, "met")
+        self.assertEqual((ws / "出" / "t.md").read_text(), (ws / "模板" / "t.md").read_text())
+        self.assertEqual(len(write_steps(run_dir, [{"t": "subgoal_end", "hands_run": res.hands_run}])), 2)

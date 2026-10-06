@@ -21,7 +21,7 @@ from typing import Callable
 
 from .plan import Plan, Subgoal
 
-OPS = ("mkdir", "move", "delete")
+OPS = ("mkdir", "move", "copy", "delete")
 MAX_FILES = 200
 
 SYSTEM = """You plan file tasks on a Mac for a user. You never act yourself: an executor carries out one part at a time, \
@@ -34,6 +34,7 @@ A plan:
             "done_when": "<what the screen shows when this part is done, if no file shows it>",
             "writes": [{"op": "mkdir", "dst": "<folder>"},
                        {"op": "move", "src": "<file>", "dst": "<folder>/<file>"},
+                       {"op": "copy", "src": "<file>", "dst": "<folder>/<new file>"},
                        {"op": "delete", "src": "<file>"}]}]}
 
 A question, when the goal leaves something open that the files cannot settle:
@@ -95,7 +96,7 @@ def dry_run(writes: list[dict], files: set[str]) -> Checked:
         if op not in OPS:
             problems.append(f"{where}: unknown operation; use one of {', '.join(OPS)}")
             continue
-        for p in ([src] if op in ("move", "delete") else []) + ([dst] if op in ("mkdir", "move") else []):
+        for p in ([src] if op in ("move", "copy", "delete") else []) + ([dst] if op in ("mkdir", "move", "copy") else []):
             if (e := bad(p)):
                 problems.append(f"{where}: {e}")
         if problems and problems[-1].startswith(where):
@@ -107,6 +108,17 @@ def dry_run(writes: list[dict], files: set[str]) -> Checked:
                 problems.append(f"{where}: the folder {Path(dst).parent.as_posix()!r} does not exist")
             else:
                 have.add(dst.rstrip("/") + "/")
+        elif op == "copy":
+            if not exists(src):
+                problems.append(f"{where}: {src!r} is not there")
+                missing.append(src)
+            elif exists(dst):
+                problems.append(f"{where}: {dst!r} already exists")
+            elif not parent_ok(dst):
+                problems.append(f"{where}: the folder {Path(dst).parent.as_posix()!r} does not exist")
+            else:
+                s_, d_ = src.rstrip("/"), dst.rstrip("/")
+                have |= {d_ + p[len(s_):] for p in have if p == s_ or p == s_ + "/" or p.startswith(s_ + "/")}
         elif op == "move":
             if not exists(src):
                 problems.append(f"{where}: {src!r} is not there")
@@ -134,11 +146,31 @@ def dry_run(writes: list[dict], files: set[str]) -> Checked:
 
 
 def parse(text: str) -> dict:
-    """The first JSON object in the reply (a model may wrap it in a fence or a sentence)."""
-    m = re.search(r"\{.*\}", text, re.S)
-    if not m:
+    """The first JSON object in the reply (a model may wrap it in a fence or a sentence, or add a second object after
+    it: raw_decode reads one object from the first "{" and ignores what follows)."""
+    i = text.find("{")
+    if i < 0:
         raise ValueError("no JSON object in the reply")
-    return json.loads(m.group(0))
+    obj, _ = json.JSONDecoder().raw_decode(text[i:])
+    if not isinstance(obj, dict):
+        raise ValueError("the reply's JSON is not an object")
+    return obj
+
+
+def normalise(writes: list[dict], files: set[str]) -> list[dict]:
+    """A move or copy whose dst is a folder (one that exists, or that an earlier write makes) goes into it under the
+    source's name: "move a.txt -> 资料" means 资料/a.txt. The local model writes this often, and it is never a request
+    to overwrite a folder. Everything else is left as written."""
+    folders = {p.rstrip("/") for p in files if p.endswith("/")}
+    out = []
+    for w in writes:
+        w = dict(w)
+        if w.get("op") == "mkdir" and w.get("dst"):
+            folders.add(w["dst"].rstrip("/"))
+        if w.get("op") in ("move", "copy") and w.get("src") and w.get("dst") and w["dst"].rstrip("/") in folders:
+            w["dst"] = f"{w['dst'].rstrip('/')}/{Path(w['src'].rstrip('/')).name}"
+        out.append(w)
+    return out
 
 
 def _shape(obj: dict) -> list[str]:
@@ -161,8 +193,13 @@ class PlanFailed(Exception):
 
 
 class ModelPlanner:
-    def __init__(self, complete: Callable[[list[dict]], str], by: str = "local-4b", rewrites: int = 1) -> None:
+    def __init__(self, complete: Callable[[list[dict]], str], by: str = "local-4b", rewrites: int = 1,
+                 peek_bytes: int = 0, peek_files: int = 20) -> None:
+        """peek_bytes > 0 shows the planner the text of small files (at most peek_files of them, each at most peek_bytes):
+        for tasks whose next step depends on what a file says (#62 BR). Only for workspaces the bench generates: a
+        real folder's contents must not go to a model that is not on the machine (#33)."""
         self.complete, self.by, self.rewrites = complete, by, rewrites
+        self.peek_bytes, self.peek_files = peek_bytes, peek_files
         self.calls = 0
         self.question: str | None = None
 
@@ -170,6 +207,19 @@ class ModelPlanner:
         files = sorted(tree(ws))
         listing = "\n".join(files[:MAX_FILES]) + (f"\n… ({len(files) - MAX_FILES} more)" if len(files) > MAX_FILES else "")
         lines = [f"Goal: {goal}", "", "Files in the workspace:", listing or "(empty)"]
+        if self.peek_bytes:
+            shown = []
+            for rel in files:
+                if rel.endswith("/") or len(shown) >= self.peek_files:
+                    continue
+                p = ws / rel
+                try:
+                    if p.stat().st_size <= self.peek_bytes:
+                        shown.append(f"--- {rel}\n{p.read_text(encoding='utf-8').rstrip()}")
+                except (OSError, UnicodeDecodeError):
+                    continue
+            if shown:
+                lines += ["", "Contents of the small text files:", *shown]
         if done:
             lines += ["", "Already done (keep these out of the plan):", *[f"- {d}" for d in done]]
         if why:
@@ -196,8 +246,13 @@ class ModelPlanner:
                 continue
             problems = _shape(obj)
             if not problems and "parts" in obj and not obj.get("ask"):
+                files = tree(ws)
+                seen = set(files)
+                for p in obj["parts"]:   # normalise in plan order, so a folder made by an earlier part counts
+                    p["writes"] = normalise(p.get("writes") or [], seen)
+                    seen |= {w["dst"].rstrip("/") + "/" for w in p["writes"] if w.get("op") == "mkdir" and w.get("dst")}
                 writes = [w for p in obj["parts"] for w in p.get("writes") or []]
-                problems = dry_run(writes, tree(ws)).problems
+                problems = dry_run(writes, files).problems
             if not problems:
                 return obj
         raise PlanFailed("; ".join(problems))

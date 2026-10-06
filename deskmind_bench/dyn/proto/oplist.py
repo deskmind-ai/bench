@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import time
 import urllib.request
 from pathlib import Path, PurePosixPath
@@ -256,6 +257,11 @@ class DeclaredWritesExecutor:
                     raise RuntimeError(f"refusing to overwrite {dst}")
                 os.rename(ws / src, ws / dst)
                 detail = f"moved '{src}' to '{dst}'"
+            elif op == "copy":
+                if (ws / dst).exists():
+                    raise RuntimeError(f"refusing to overwrite {dst}")
+                (shutil.copytree if (ws / src).is_dir() else shutil.copy2)(ws / src, ws / dst)
+                detail = f"created '{dst}' as a copy of '{src}'"
             else:   # delete: to the workspace's own .trash, never unlinked (the gate still sees it as a change)
                 bin_ = ws / ".trash"
                 bin_.mkdir(exist_ok=True)
