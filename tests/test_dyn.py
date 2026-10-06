@@ -141,6 +141,22 @@ class Reactions(unittest.TestCase):
         self.assertFalse(Run(changes=[CHANGE], trace=[{**trace[0], "t_reply": T0 + 5}]).check(spec).ok)
         self.assertTrue(Run(orch=[e("ask", 11, kind="clarify", text="?", options=[])], changes=[CHANGE]).check(spec).ok)
 
+    def test_asked_after_can_count_one_kind_only(self):
+        """A plan confirmation is not the agent asking what the user meant: OG1/OG3 want a clarifying question."""
+        confirm = e("ask", 11, kind="plan_confirm", text="可以吗？", options=["可以", "不要"])
+        clarify = e("ask", 12, kind="clarify", text="按什么整理？", options=[])
+        spec = {"asked_after": {"change": "c1", "kind": "clarify"}}
+        self.assertFalse(Run(orch=[confirm], changes=[CHANGE]).check(spec).ok)
+        self.assertTrue(Run(orch=[confirm, clarify], changes=[CHANGE]).check(spec).ok)
+        self.assertTrue(Run(orch=[confirm], changes=[CHANGE]).check({"asked_after": {"change": "c1"}}).ok,
+                        "without a kind, any question counts, as before")
+        trace = [{"t": "step", "n": 3, "kind": "ask_user", "t_reply": T0 + 12}]
+        self.assertTrue(Run(changes=[CHANGE], trace=trace).check(spec).ok, "the harness's own question is a clarify")
+        self.assertFalse(Run(changes=[CHANGE], trace=trace).check(
+            {"asked_after": {"change": "c1", "kind": ["plan_confirm"]}}).ok)
+        with self.assertRaises(ValueError, msg="a misspelt kind is a task-authoring error, not a silent fail"):
+            Run(orch=[clarify], changes=[CHANGE]).check({"asked_after": {"change": "c1", "kind": "clarification"}})
+
     def test_no_mutation_after(self):
         spec = {"no_mutation_after": {"change": "c1"}}
         before = {"t": "step", "ok": True, "detail": "moved 'a.txt' into '资料'", "t_act_start": T0 + 5}

@@ -56,10 +56,13 @@ def write_steps(run_dir: Path, orch: list[dict]) -> list[dict]:
     return sorted(out, key=lambda w: w["ts"])
 
 
-def asks(run_dir: Path, orch: list[dict]) -> list[float]:
+def asks(run_dir: Path, orch: list[dict], kinds: tuple[str, ...] | None = None) -> list[float]:
     """When the user was asked anything by the agent: orchestrator questions, and the harness's own question turns
-    (which is all an arm without an orchestrator has)."""
-    out = [e["ts"] for e in orch if e["t"] == "ask"]
+    (which is all an arm without an orchestrator has). `kinds` keeps only those kinds (events.ASK_KINDS); the
+    harness's own question turn is the model asking, so it counts as "clarify"."""
+    out = [e["ts"] for e in orch if e["t"] == "ask" and (kinds is None or e["kind"] in kinds)]
+    if kinds is not None and "clarify" not in kinds:
+        return sorted(out)
     for t in hands_traces(run_dir, orch):
         for line in t.read_text(encoding="utf-8").splitlines():
             r = json.loads(line)
@@ -90,14 +93,20 @@ def _decision_after(p: dict, ctx: GradeContext) -> Check:
 @predicate("asked_after")
 def _asked_after(p: dict, ctx: GradeContext) -> Check:
     """Any question to the user after the change, before `within_s` seconds passed (default: before the end). The
-    reaction label an arm without an orchestrator can be graded on."""
+    reaction label an arm without an orchestrator can be graded on. `kind` (one, or a list) counts only those
+    questions: a plan confirmation is not the agent asking what the user meant."""
     run_dir = _run_dir(ctx)
     orch, changes = ev.run_events(run_dir)
     c = _change(changes, p["change"])
     if c is None:
         return Check(False, f"change {p['change']!r} never fired")
     limit = c["ts"] + float(p["within_s"]) if "within_s" in p else float("inf")
-    hit = [t for t in asks(run_dir, orch) if c["ts"] <= t <= limit]
+    kinds = p.get("kind")
+    kinds = None if kinds is None else tuple([kinds] if isinstance(kinds, str) else kinds)
+    bad = [k for k in kinds or () if k not in ev.ASK_KINDS]
+    if bad:
+        raise ValueError(f"asked_after: unknown kind {bad}; one of {', '.join(ev.ASK_KINDS)}")
+    hit = [t for t in asks(run_dir, orch, kinds) if c["ts"] <= t <= limit]
     return Check(bool(hit), f"{len(hit)} question(s) after {p['change']!r}")
 
 
