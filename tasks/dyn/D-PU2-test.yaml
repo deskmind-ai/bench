@@ -10,7 +10,7 @@ tags:
 - reaction
 app: com.apple.finder
 goal: |
-  新建文件夹 温室，把 oak-survey-75.md、kiln-temps-52.txt、苔藓观察-51.txt 依次放进去。其他文件不要动。
+  先新建文件夹 温室，把 oak-survey-75.md 放进去；然后把 kiln-temps-52.txt 也放进 温室；最后把 苔藓观察-51.txt 也放进 温室。其他文件不要动。
 fixture: dyn_pu2_test
 seed:
   pool: t7-test

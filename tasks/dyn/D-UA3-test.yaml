@@ -10,7 +10,7 @@ tags:
 - reaction
 app: com.apple.finder
 goal: |
-  新建文件夹 暗房，把 oak-survey-92.log、星图草案-29.md、kiln-temps-54.md 依次放进去。其他文件不要动。
+  先新建文件夹 暗房，把 oak-survey-92.log 放进去；然后把 星图草案-29.md 也放进 暗房；最后把 kiln-temps-54.md 也放进 暗房。其他文件不要动。
 fixture: dyn_ua3_test
 seed:
   pool: t7-test

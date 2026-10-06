@@ -10,7 +10,7 @@ tags:
 - reaction
 app: com.apple.finder
 goal: |
-  新建文件夹 暗房，把 glacier-map-53.log、窑温曲线-55.log、quarry-photos-91.csv 依次放进去。其他文件不要动。
+  先新建文件夹 暗房，把 glacier-map-53.log 放进去；然后把 窑温曲线-55.log 也放进 暗房；最后把 quarry-photos-91.csv 也放进 暗房。其他文件不要动。
 fixture: dyn_ua3_dev
 seed:
   pool: t7-dev

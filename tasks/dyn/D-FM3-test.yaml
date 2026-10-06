@@ -10,7 +10,7 @@ tags:
 - reaction
 app: com.apple.finder
 goal: |
-  新建文件夹 库房，把 渡口排班-44.txt、梯田测绘-75.csv、harbor-tides-43.md 依次放进去。其他文件不要动。
+  先新建文件夹 库房，把 渡口排班-44.txt 放进去；然后把 梯田测绘-75.csv 也放进 库房；最后把 harbor-tides-43.md 也放进 库房。其他文件不要动。
 fixture: dyn_fm3_test
 seed:
   pool: t7-test

@@ -36,8 +36,7 @@ changes:
 - id: c1
   type: user_amend
   trigger:
-    on_ask:
-      kind: plan_confirm
+    before_subgoal: month0
   phase: early
   effect:
   - user_says: 还是按月份放吧：文件名里是哪个月就放进哪个月的文件夹，比如 2026-08
