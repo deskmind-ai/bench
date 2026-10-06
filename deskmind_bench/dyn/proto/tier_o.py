@@ -215,7 +215,7 @@ def run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://127
             if not frontier_model:
                 raise SystemExit("arm d needs --frontier-model")
             key = os.environ.get("OPENROUTER_API_KEY")
-            planner = ModelPlanner(openai_chat(frontier_url, frontier_model, api_key=key, max_tokens=2000), by="frontier",
+            planner = ModelPlanner(openai_chat(frontier_url, frontier_model, api_key=key, max_tokens=2000), by="cloud",
                                    peek_bytes=1024)
         elif arm == "t":
             planner = TemplatePlanner()

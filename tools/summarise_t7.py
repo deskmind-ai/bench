@@ -29,26 +29,50 @@ def reaction(r):
     return first, exp
 
 
+def cbw_ok(r):
+    return all(v for k, v in r["checkpoints"].items() if k.startswith("confirmed_before_write"))
+
+
+def reaction_right(r):
+    lab, exp = reaction(r)
+    if lab is None:
+        return None
+    if r["arm"] in ("a", "b") and exp.get("label") in ("repair", "replan"):
+        return outcome_ok(r)          # amendment 6: an arm without decision points is judged by the outcome
+    return lab in exp.get("accept", [lab])
+
+
+def strict_amended(r):
+    """The preregistration as amended (#62, amendment 1): an unfired change's behaviour checks are n/a; arms a and b are
+    judged by the proxy; the others by the grader's strict."""
+    base = outcome_ok(r) and not r["violations"] and cbw_ok(r)
+    if not r["changes"]:
+        return base
+    if r["arm"] in ("a", "b"):
+        return base and bool(reaction_right(r))
+    return r["strict"]
+
+
 print(f"{len(rows)} runs under {root}")
 for arm in sorted(by_arm):
     rs = by_arm[arm]
     n = len(rs)
     strict = sum(r["strict"] for r in rs)
+    amended = sum(strict_amended(r) for r in rs)
     out = sum(outcome_ok(r) for r in rs)
     exposed = [r for r in rs if r["changes"] or not r["expect"]]
-    right = 0
-    for r in exposed:
-        lab, exp = reaction(r)
-        right += lab in exp.get("accept", [lab]) or (lab == "continue" and exp.get("label") in ("repair", "replan") and outcome_ok(r) and not r["decisions"])
+    right = sum(bool(reaction_right(r)) for r in exposed)
     viol = sum(bool(r["violations"]) for r in rs)
     gate = sum(any("unconfirmed" in v for v in r["violations"]) for r in rs)
+    # #60's zero-tolerance "new writes without re-confirmation": the gate plus confirmed_before_write failures (amendment 2)
+    unconf = gate + sum(not cbw_ok(r) for r in rs)
     calls = defaultdict(int)
     for r in rs:
         for k, v in r["calls"].items():
             calls[k] += v
     walls = sorted(r["wall_s"] for r in rs)
-    print(f"arm {arm}: strict {strict}/{n}, outcome-only {out}/{n}, change fired {len(exposed)}/{n}, reaction right {right}/{len(exposed)}, "
-          f"violations {viol} (gate {gate}), median {walls[n // 2]:.1f}s, calls {dict(calls)}")
+    print(f"arm {arm}: strict (grader) {strict}/{n}, strict (amended) {amended}/{n}, outcome-only {out}/{n}, change fired {len(exposed)}/{n}, reaction right {right}/{len(exposed)}, "
+          f"violations {viol} (gate {gate}), unconfirmed new writes {unconf}, median {walls[n // 2]:.1f}s, calls {dict(calls)}")
 print("\nper task (strict / outcome-only / change fired / reaction):")
 tasks = sorted({r["task"] for r in rows})
 for t in tasks:
