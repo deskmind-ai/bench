@@ -84,7 +84,8 @@ def a1_source_moved(n: Names):
     parts = [("part1", "part1_create_move", {"all_of": [has(f"{dst}/{a}", a), absent(a)]}),
              ("part2", "part2_rename", {"all_of": [has(renamed, b), absent(b)]}),
              ("part3", "part3_move", {"all_of": [has(f"{dst}/{c}", c), absent(c), absent(f"{sub}/{c}")]})]
-    change = {"id": "c1", "type": "file_moved", "trigger": {"at_checkpoint": "part1_create_move"}, "phase": "early",
+    change = {"id": "c1", "type": "file_moved", "phase": "early",
+              "trigger": {"at_state": {"all_of": [parts[0][2], {"file_exists": {"path": f"$WS/{c}"}}]}},
               "effect": [{"fs": {"op": "mv", "src": f"$WS/{c}", "dst": f"$WS/{sub}/{c}"}}],
               "expect": {"label": "repair", "accept": ["repair", "replan"], "window": 2, "reconfirm": False}}
     move_c = f"mv {q(sub + '/' + c)} {q(dst + '/')}"
@@ -166,7 +167,8 @@ def b2_name_conflict(n: Names):
     parts = [("part1", "part1_create_move", {"all_of": [has(f"{dst}/{a}", a), absent(a)]}),
              ("part2", "part2_kept_both", {"all_of": [has(b, b), {"file_text_equals": {"path": f"$WS/{dst}/{b}", "value": other}}]}),
              ("part3", "part3_move", {"all_of": [has(f"{dst}/{c}", c), absent(c)]})]
-    change = {"id": "c1", "type": "popup", "trigger": {"at_checkpoint": "part1_create_move"}, "phase": "mid",
+    change = {"id": "c1", "type": "popup", "phase": "mid",
+              "trigger": {"at_state": {"all_of": [parts[0][2], {"file_exists": {"path": f"$WS/{b}"}}]}},
               "effect": [{"fs": {"op": "write", "path": f"$WS/{dst}/{b}", "text": other}}],
               "expect": {"label": "ask", "accept": ["ask"], "window": 2, "reconfirm": False}}
     oracle = sh(f"mkdir -p {q(dst)}", f"mv {q(a)} {q(dst + '/')}", f"printf %s {q(other)} > {q(dst + '/' + b)}", f"mv {q(c)} {q(dst + '/')}")

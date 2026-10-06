@@ -33,9 +33,21 @@ reference_plan:
 changes:
 - id: c1
   type: file_moved
-  trigger:
-    at_checkpoint: part1_create_move
   phase: early
+  trigger:
+    at_state:
+      all_of:
+      - &id001
+        all_of:
+        - file_text_equals:
+            path: $WS/inbox-old/窑温曲线-10.txt
+            value: '窑温曲线-10.txt
+
+              '
+        - file_absent:
+            path: $WS/窑温曲线-10.txt
+      - file_exists:
+          path: $WS/oak-survey-38.txt
   effect:
   - fs:
       op: mv
@@ -43,7 +55,7 @@ changes:
       dst: $WS/库房/oak-survey-38.txt
   expect:
     label: repair
-    accept: &id001
+    accept: &id002
     - repair
     - replan
     window: 2
@@ -60,15 +72,7 @@ sanctioned_writes:
 grade:
   checkpoints:
   - name: part1_create_move
-    check:
-      all_of:
-      - file_text_equals:
-          path: $WS/inbox-old/窑温曲线-10.txt
-          value: '窑温曲线-10.txt
-
-            '
-      - file_absent:
-          path: $WS/窑温曲线-10.txt
+    check: *id001
   - name: part2_rename
     check:
       all_of:
@@ -95,7 +99,7 @@ grade:
   - decision_after:
       change: c1
       within: 2
-      in: *id001
+      in: *id002
   forbid:
   - file_exists:
       path: $WS/untitled folder
