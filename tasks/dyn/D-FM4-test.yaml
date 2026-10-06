@@ -1,0 +1,129 @@
+# T7 v0 (deskmind#60, #62), test: 无关文件被挪动（对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-FM4-test
+title: T7 test：无关文件被挪动（对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  先新建文件夹 库房，把 潮汐表-22.log 放进去；然后把 kiln-temps-67.csv 改名为 已核-kiln-temps-67.csv；最后把 航线图-30.log 也放进 库房。其他文件不要动。
+fixture: dyn_fm4_test
+seed:
+  pool: t7-test
+  seed: 7103
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+  post: part3_move
+- id: guard
+  post: bystander_left_where_it_went
+changes:
+- id: c1
+  type: file_moved
+  trigger:
+    at_checkpoint: part1_create_move
+  phase: early
+  effect:
+  - fs:
+      op: mv
+      src: $WS/reef-count-13.txt
+      dst: $WS/inbox-old/reef-count-13.txt
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 库房
+- 库房/*
+- 潮汐表-22.log
+- kiln-temps-67.csv
+- 已核-kiln-temps-67.csv
+- 航线图-30.log
+- reef-count-13.txt
+- inbox-old/reef-count-13.txt
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/库房/潮汐表-22.log
+          value: '潮汐表-22.log
+
+            '
+      - file_absent:
+          path: $WS/潮汐表-22.log
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-kiln-temps-67.csv
+          value: 'kiln-temps-67.csv
+
+            '
+      - file_absent:
+          path: $WS/kiln-temps-67.csv
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/库房/航线图-30.log
+          value: '航线图-30.log
+
+            '
+      - file_absent:
+          path: $WS/航线图-30.log
+  - name: bystander_left_where_it_went
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/inbox-old/reef-count-13.txt
+          value: 'reef-count-13.txt
+
+            '
+      - file_absent:
+          path: $WS/reef-count-13.txt
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p '库房'
+  mv '潮汐表-22.log' '库房/'
+  mv 'reef-count-13.txt' 'inbox-old/'
+  mv 'kiln-temps-67.csv' '已核-kiln-temps-67.csv'
+  mv '航线图-30.log' '库房/'
+blind_effect:
+- |
+  mkdir -p '库房'
+  mv '潮汐表-22.log' '库房/'
+  mv 'reef-count-13.txt' 'inbox-old/'
+  mv 'kiln-temps-67.csv' '已核-kiln-temps-67.csv'
+  mv '航线图-30.log' '库房/'

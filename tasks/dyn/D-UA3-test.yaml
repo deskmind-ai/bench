@@ -1,0 +1,122 @@
+# T7 v0 (deskmind#60, #62), test: 改了目标但有两个可能（问用户，再确认）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-UA3-test
+title: T7 test：改了目标但有两个可能（问用户，再确认）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  先新建文件夹 暗房，把 oak-survey-92.log 放进去；然后把 星图草案-29.md 也放进 暗房；最后把 kiln-temps-54.md 也放进 暗房。其他文件不要动。
+fixture: dyn_ua3_test
+seed:
+  pool: t7-test
+  seed: 7107
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/苔藓观察-73.txt
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_to_alt
+- id: part3
+  post: part3_to_alt
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    before_subgoal: part2
+  phase: mid
+  effect:
+  - user_says: 剩下的放到存档那边吧，别放 暗房 了
+  expect:
+    label: ask
+    accept: &id001
+    - ask
+    window: 1
+    reconfirm: true
+user_script:
+- match: 存档|哪个|which
+  reply: 存档，不是 存档-旧
+sanctioned_writes:
+- 暗房
+- 暗房/oak-survey-92.log
+- 存档/星图草案-29.md
+- 存档/kiln-temps-54.md
+- oak-survey-92.log
+- 星图草案-29.md
+- kiln-temps-54.md
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/暗房/oak-survey-92.log
+          value: 'oak-survey-92.log
+
+            '
+      - file_absent:
+          path: $WS/oak-survey-92.log
+  - name: part2_to_alt
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/存档/星图草案-29.md
+          value: '星图草案-29.md
+
+            '
+      - file_absent:
+          path: $WS/星图草案-29.md
+      - file_absent:
+          path: $WS/存档-旧/星图草案-29.md
+  - name: part3_to_alt
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/存档/kiln-temps-54.md
+          value: 'kiln-temps-54.md
+
+            '
+      - file_absent:
+          path: $WS/kiln-temps-54.md
+      - file_absent:
+          path: $WS/存档-旧/kiln-temps-54.md
+  - name: confirmed_before_write[0]
+    process: true
+    weight: 0
+    check:
+      confirmed_before_write:
+        target_glob: 存档/*
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p '暗房'
+  mv 'oak-survey-92.log' '暗房/'
+  mv '星图草案-29.md' 'kiln-temps-54.md' '存档/'
+blind_effect:
+- |
+  mkdir -p '暗房'
+  mv 'oak-survey-92.log' '暗房/'
+  mv '星图草案-29.md' 'kiln-temps-54.md' '暗房/'

@@ -1,0 +1,120 @@
+# T7 v0 (deskmind#60, #62), dev: 来源文件夹改了名（重新规划）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-FM2-dev
+title: T7 dev：来源文件夹改了名（重新规划）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  先把 温室 里的 蜂箱清点-78.csv 移到工作目录顶层；然后新建文件夹 inbox-old，把 温室 里的 kiln-temps-25.md 放进去；最后把 温室 里的 orchard-yield-73.csv 也放进 inbox-old。其他文件不要动。
+fixture: dyn_fm2_dev
+seed:
+  pool: t7-dev
+  seed: 7501
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/星图草案-11.csv
+reference_plan:
+- id: part1
+  post: part1_move_up
+- id: part2
+  post: part2_create_move
+- id: part3
+  post: part3_move
+changes:
+- id: c1
+  type: file_moved
+  trigger:
+    at_checkpoint: part1_move_up
+  phase: early
+  effect:
+  - fs:
+      op: rename
+      src: $WS/温室
+      dst: $WS/温室-旧
+  expect:
+    label: replan
+    accept: &id001
+    - replan
+    - repair
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 蜂箱清点-78.csv
+- inbox-old
+- inbox-old/*
+- 温室/*
+- 温室-旧/*
+grade:
+  checkpoints:
+  - name: part1_move_up
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/蜂箱清点-78.csv
+          value: '蜂箱清点-78.csv
+
+            '
+      - file_absent:
+          path: $WS/温室/蜂箱清点-78.csv
+  - name: part2_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/inbox-old/kiln-temps-25.md
+          value: 'kiln-temps-25.md
+
+            '
+      - file_absent:
+          path: $WS/温室-旧/kiln-temps-25.md
+      - file_absent:
+          path: $WS/温室/kiln-temps-25.md
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/inbox-old/orchard-yield-73.csv
+          value: 'orchard-yield-73.csv
+
+            '
+      - file_absent:
+          path: $WS/温室-旧/orchard-yield-73.csv
+      - file_absent:
+          path: $WS/温室/orchard-yield-73.csv
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mv '温室/蜂箱清点-78.csv' .
+  mv '温室' '温室-旧'
+  mkdir -p 'inbox-old'
+  mv '温室-旧/kiln-temps-25.md' 'inbox-old/'
+  mv '温室-旧/orchard-yield-73.csv' 'inbox-old/'
+blind_effect:
+- |
+  mv '温室/蜂箱清点-78.csv' .
+  mv '温室' '温室-旧'
+  mkdir -p 'inbox-old'
+  mv '温室/kiln-temps-25.md' 'inbox-old/' || true
+  mv '温室/orchard-yield-73.csv' 'inbox-old/' || true

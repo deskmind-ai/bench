@@ -1,0 +1,112 @@
+# T7 v0 (deskmind#60, #62), test: 「好的，你继续」（对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-UA4-test
+title: T7 test：「好的，你继续」（对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  先新建文件夹 shelf，把 渡口排班-90.csv 放进去；然后把 灯塔巡检-50.log 改名为 已核-灯塔巡检-50.log；最后把 星图草案-26.log 也放进 shelf。其他文件不要动。
+fixture: dyn_ua4_test
+seed:
+  pool: t7-test
+  seed: 7108
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/reef-count-12.txt
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+  post: part3_move
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    before_subgoal: part3
+  phase: late
+  effect:
+  - user_says: 好的，你继续
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 1
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- shelf
+- shelf/渡口排班-90.csv
+- 渡口排班-90.csv
+- 灯塔巡检-50.log
+- 已核-灯塔巡检-50.log
+- 星图草案-26.log
+- shelf/星图草案-26.log
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/shelf/渡口排班-90.csv
+          value: '渡口排班-90.csv
+
+            '
+      - file_absent:
+          path: $WS/渡口排班-90.csv
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-灯塔巡检-50.log
+          value: '灯塔巡检-50.log
+
+            '
+      - file_absent:
+          path: $WS/灯塔巡检-50.log
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/shelf/星图草案-26.log
+          value: '星图草案-26.log
+
+            '
+      - file_absent:
+          path: $WS/星图草案-26.log
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p 'shelf'
+  mv '渡口排班-90.csv' 'shelf/'
+  mv '灯塔巡检-50.log' '已核-灯塔巡检-50.log'
+  mv '星图草案-26.log' 'shelf/'
+blind_effect:
+- |
+  mkdir -p 'shelf'
+  mv '渡口排班-90.csv' 'shelf/'
+  mv '灯塔巡检-50.log' '已核-灯塔巡检-50.log'
+  mv '星图草案-26.log' 'shelf/'

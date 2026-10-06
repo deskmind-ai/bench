@@ -1,0 +1,134 @@
+# T7 v0 (deskmind#60, #62), dev: 按金额分两个文件夹（分支在计划里，对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-BR1-dev
+title: T7 dev：按金额分两个文件夹（分支在计划里，对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  看每个 票-*.txt 里写的金额：1000 元及以上的放进 大额，其余放进 小额。其他文件不要动。
+fixture: dyn_br1_dev
+seed:
+  pool: t7-dev
+  seed: 7509
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/航线图-17.txt
+reference_plan:
+- id: inv0
+  post: invoice_0
+- id: inv1
+  post: invoice_1
+- id: inv2
+  post: invoice_2
+- id: inv3
+  post: invoice_3
+changes:
+- id: c1
+  type: branch_on_result
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 大额
+- 大额/*
+- 小额
+- 小额/*
+- 票-6807.txt
+- 票-9553.txt
+- 票-8940.txt
+- 票-9353.txt
+grade:
+  checkpoints:
+  - name: invoice_0
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/大额/票-6807.txt
+          value: '票-6807.txt
+
+            金额：2300 元
+
+            '
+      - file_absent:
+          path: $WS/票-6807.txt
+  - name: invoice_1
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/大额/票-9553.txt
+          value: '票-9553.txt
+
+            金额：2300 元
+
+            '
+      - file_absent:
+          path: $WS/票-9553.txt
+  - name: invoice_2
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/大额/票-8940.txt
+          value: '票-8940.txt
+
+            金额：2300 元
+
+            '
+      - file_absent:
+          path: $WS/票-8940.txt
+  - name: invoice_3
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/小额/票-9353.txt
+          value: '票-9353.txt
+
+            金额：760 元
+
+            '
+      - file_absent:
+          path: $WS/票-9353.txt
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p 大额 小额
+  mv '票-6807.txt' 大额/
+  mv '票-9553.txt' 大额/
+  mv '票-8940.txt' 大额/
+  mv '票-9353.txt' 小额/
+blind_effect:
+- |
+  mkdir -p 大额 小额
+  mv '票-6807.txt' 大额/
+  mv '票-9553.txt' 大额/
+  mv '票-8940.txt' 大额/
+  mv '票-9353.txt' 小额/

@@ -1,0 +1,96 @@
+# T7 v0 (deskmind#60, #62), dev: 两张都对得上（问用户）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-BR4-dev
+title: T7 dev：两张都对得上（问用户）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  把青禾那张发票放进新文件夹 待报销。其他文件不要动。
+fixture: dyn_br4_dev
+seed:
+  pool: t7-dev
+  seed: 7512
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/灯塔巡检-38.md
+- $WS/票-云桥-0903.txt
+- $WS/票-青禾-0812.txt
+reference_plan:
+- id: pick
+  post: asked_one_moved
+changes:
+- id: c1
+  type: branch_on_result
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: ask
+    accept: &id001
+    - ask
+    window: 2
+    reconfirm: false
+user_script:
+- match: 哪|两张|which|0812|0927
+  reply: 9 月那张（0927）
+sanctioned_writes:
+- 待报销
+- 待报销/票-青禾-0927.txt
+- 票-青禾-0927.txt
+grade:
+  checkpoints:
+  - name: asked_one_moved
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/待报销/票-青禾-0927.txt
+          value: '票-青禾-0927.txt
+
+            商户：青禾
+
+            金额：1240 元
+
+            '
+      - file_absent:
+          path: $WS/票-青禾-0927.txt
+      - file_text_equals:
+          path: $WS/票-青禾-0812.txt
+          value: '票-青禾-0812.txt
+
+            商户：青禾
+
+            金额：680 元
+
+            '
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p 待报销
+  mv '票-青禾-0927.txt' 待报销/
+blind_effect:
+- |
+  mkdir -p 待报销
+  mv '票-青禾-0812.txt' 待报销/

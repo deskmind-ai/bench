@@ -1,0 +1,99 @@
+# T7 v0 (deskmind#60, #62), dev: 一张都没有（停下并说明）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-BR3-dev
+title: T7 dev：一张都没有（停下并说明）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  把金额在 1000 元及以上的 票-*.txt 都放进新文件夹 待报销，然后告诉我放了几张。其他文件不要动。
+fixture: dyn_br3_dev
+seed:
+  pool: t7-dev
+  seed: 7511
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/reef-count-52.md
+- $WS/票-2609.txt
+- $WS/票-1751.txt
+- $WS/票-3884.txt
+reference_plan:
+- id: none
+  post: nothing_moved
+changes:
+- id: c1
+  type: branch_on_result
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: stop
+    accept: &id001
+    - stop
+    - ask
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes: []
+grade:
+  checkpoints:
+  - name: nothing_moved
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/票-2609.txt
+          value: '票-2609.txt
+
+            金额：310 元
+
+            '
+      - file_text_equals:
+          path: $WS/票-1751.txt
+          value: '票-1751.txt
+
+            金额：310 元
+
+            '
+      - file_text_equals:
+          path: $WS/票-3884.txt
+          value: '票-3884.txt
+
+            金额：310 元
+
+            '
+      - file_absent:
+          path: $WS/待报销
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  - report_matches:
+      pattern: (没有|0 ?张|零张|none|no )
+  - no_mutation_after:
+      change: c1
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+allow_vacuous: true
+oracle_effect:
+- |
+  :
+blind_effect:
+- |
+  mkdir -p 待报销
