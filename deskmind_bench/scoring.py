@@ -25,6 +25,7 @@ from pathlib import Path
 
 from .bench import SUITE_VERSION, aggregate, run_summary
 from .failures import NOT_MODEL_FAULT
+from . import dyn  # noqa: F401  -- registers the dynamic-task checks
 from .graders.primitives import GradeContext
 from .graders.score import grade
 from .suite import REPO, suite_hash
@@ -87,7 +88,8 @@ def score_run(run_dir: Path, tasks: dict[str, Task], fixtures_dir: Path) -> dict
         return out
     ctx = GradeContext(workspace=ws, vars=task.vars, clipboard=None,
                        driver_state=run.get("driver_state") or {},
-                       run={"state": run.get("state"), "metrics": run.get("metrics") or {}})
+                       run={"state": run.get("state"), "metrics": run.get("metrics") or {}, "dir": str(run_dir),
+                            "fixture_dir": str(fixtures_dir / task.fixture) if task.fixture else None})
     g = grade(task, ctx, sentinel_digests=pristine_sentinels(task, fixtures_dir))
     out.update(grade=g.to_json(), failure=classify(run.get("state"), g, recorded_failure), regraded=True)
     return out

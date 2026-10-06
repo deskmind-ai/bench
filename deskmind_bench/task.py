@@ -61,6 +61,22 @@ class UserReply:
 
 
 @dataclass
+class Change:
+    """Something that happens to the run mid-way, for the dynamic-task set (deskmind#62): fired by the bench runner,
+    never announced to the agent, and graded by how the agent reacts."""
+
+    id: str
+    type: str                        # file_moved | popup | app_absent | user_amend | branch_on_result
+    trigger: dict                    # at_start | at_checkpoint: <name> | at_state: <check> | before_subgoal: <id>
+                                     # | on_ask: {...} | at_action: N
+    effect: list[dict] = field(default_factory=list)
+    #: The right reaction: label (continue | repair | replan | ask | stop), what else counts (accept), within how
+    #: many decision points (window), and whether the right new plan needs the user's confirmation again.
+    expect: dict = field(default_factory=dict)
+    phase: str | None = None         # early | mid | late, for stratified reporting
+
+
+@dataclass
 class Budget:
     max_actions: int = 50
     wall_clock_s: float = 1200.0
@@ -112,6 +128,17 @@ class Task:
     #: to do with how a GUI would get there. A task that can be verified this way
     #: is a task whose grader ports across drivers unchanged.
     oracle_effect: list[str] = field(default_factory=list)
+    #: The dynamic-task set (deskmind#62); empty for every other task.
+    changes: list[Change] = field(default_factory=list)
+    #: Subgoals with their success checkpoints, to line decision points up with the plan.
+    reference_plan: list[dict] = field(default_factory=list)
+    #: Seeded variants: {pool, n_variants}.
+    seed: dict = field(default_factory=dict)
+    #: The original plan carried out after the changes: verify requires it to fail on a change that needs a
+    #: reaction and to pass on a control -- the proof that each change is necessary.
+    blind_effect: list[str] = field(default_factory=list)
+    #: The decisions a correct run makes, in order.
+    oracle_decisions: list[str] = field(default_factory=list)
     #: Set when a run that does nothing at all would still score > 0. Should be
     #: empty for every real task; ``verify-tasks`` fails the task otherwise.
     allow_vacuous: bool = False
@@ -149,6 +176,16 @@ def load_task(path: str | Path) -> Task:
     if not cps:
         raise TaskError(f"{p}: a task with no checkpoints cannot be scored")
 
+    # A dynamic task's behaviour checks are process checkpoints (how the run reacted, not what the workspace holds),
+    # and its unconfirmed-writes gate is a guard: it gates strict success and carries no partial weight. Wrong
+    # executions are gated by forbid and sentinels, as everywhere.
+    for i, b in enumerate(grade.get("behaviour") or []):
+        cps.append(Checkpoint(name=f"behaviour[{i}]", check=b, process=True))
+    guards = list(grade.get("guards") or [])
+    gates = grade.get("gates") or {}
+    if gates.get("unconfirmed_writes") == 0:
+        guards.append({"unconfirmed_writes": {"sanctioned": list(raw.get("sanctioned_writes") or [])}})
+
     budget_raw = raw.get("budget") or {}
     task = Task(
         id=raw["id"],
@@ -174,13 +211,23 @@ def load_task(path: str | Path) -> Task:
                                delay_s=float(u.get("delay_s", 5.0)), approve=u.get("approve"))
                      for u in (raw.get("user_script") or [])],
         checkpoints=cps,
-        guards=list(grade.get("guards") or []),
+        guards=guards,
         forbid=list(grade.get("forbid") or []),
         oracle=list(raw.get("oracle") or []),
         oracle_effect=[str(c) for c in (raw.get("oracle_effect") or [])],
         allow_vacuous=bool(raw.get("allow_vacuous", False)),
+        changes=[Change(id=c["id"], type=c["type"], trigger=dict(c.get("trigger") or {"at_start": True}),
+                        effect=list(c.get("effect") or []), expect=dict(c.get("expect") or {}), phase=c.get("phase"))
+                 for c in (raw.get("changes") or [])],
+        reference_plan=list(raw.get("reference_plan") or []),
+        seed=dict(raw.get("seed") or {}),
+        blind_effect=[str(c) for c in (raw.get("blind_effect") or [])],
+        oracle_decisions=[str(d) for d in (raw.get("oracle_decisions") or [])],
         source_path=p,
     )
+    ids = [c.id for c in task.changes]
+    if len(set(ids)) != len(ids):
+        raise TaskError(f"{p}: duplicate change ids {ids}")
     return task
 
 

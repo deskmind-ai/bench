@@ -17,6 +17,8 @@ REPO = Path(__file__).resolve().parents[1]
 GRADERS = Path(__file__).resolve().parent / "graders"
 #: The path label the grader files are hashed under (see the module docstring).
 GRADERS_LABEL = "hands/graders"
+#: The dynamic-task set's own checks (deskmind#62), hashed for that set only.
+DYN = Path(__file__).resolve().parent / "dyn"
 
 
 def suite_files(task_set: str, root: str | Path | None = None) -> list[tuple[str, Path]]:
@@ -28,6 +30,8 @@ def suite_files(task_set: str, root: str | Path | None = None) -> list[tuple[str
         files += sorted(p for p in (root / "fixtures" / fx).rglob("*") if p.is_file())
     out = [(str(p.relative_to(root)), p) for p in files]
     out += [(f"{GRADERS_LABEL}/{p.name}", p) for p in sorted(GRADERS.glob("*.py"))]
+    if task_set == "dyn":   # the dynamic-task checks move only the dyn set's hash, never diag's
+        out += [(f"deskmind_bench/dyn/{p.name}", p) for p in sorted(DYN.glob("*.py"))]
     return out
 
 
