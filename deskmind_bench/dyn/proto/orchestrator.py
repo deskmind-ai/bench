@@ -55,12 +55,22 @@ class NoHooks:
     def before_subgoal(self, k: int, clause: str) -> None: ...
     def after_subgoal(self) -> None: ...
     def on_ask(self, kind: str, text: str) -> None: ...
+    def close(self) -> None: ...
 
 
 def run(goal: str, ws: Path | None, *, planner, decider, executor, user, log: EventLog, budget: Budget = Budget(),
         channel: str = "gui", can_handoff: bool = False, apps: list[str] | None = None, check_apps: bool = False,
         hooks=None) -> dict:
     hooks = hooks or NoHooks()
+    try:
+        return _run(goal, ws, planner=planner, decider=decider, executor=executor, user=user, log=log, budget=budget,
+                    channel=channel, can_handoff=can_handoff, apps=apps, check_apps=check_apps, hooks=hooks)
+    finally:
+        hooks.close()   # however the run ends: a dialog a change put up must not stay on the user's screen
+
+
+def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, can_handoff, apps, check_apps,
+         hooks) -> dict:
     hooks.at_start()
     started: list[str] = []          # clauses in the order they were first started: before_subgoal's k
     plan = planner.plan(goal, channel)
