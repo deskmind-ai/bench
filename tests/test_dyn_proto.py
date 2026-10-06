@@ -97,7 +97,7 @@ class Orchestrator(unittest.TestCase):
         add = {1: lambda ws: queue.write_text(json.dumps({"text": "再把 清单-87.log 删除"}, ensure_ascii=False) + "\n")}
 
         class Adds(TemplatePlanner):      # a planner that reads the amendment (the cloud planner's job in arm d)
-            def replan(self, goal, plan, said):
+            def replan(self, goal, plan, said, **kw):
                 new = super().replan(goal, plan, said)
                 new.subgoals.append(Subgoal(f"v{new.version}x", "把 清单-87.log 删除"))
                 return new

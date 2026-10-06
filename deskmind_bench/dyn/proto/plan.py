@@ -22,9 +22,9 @@ class Subgoal:
     id: str
     goal: str                        # what the executor is told; repair and ask append to it
     channel: str = "gui"
-    post: str | None = None          # a named success check the executor's caller can run; None: trust the outcome
+    post: str | None = None          # how to tell the part is done, when no file shows it; None: trust the outcome
     clause: str = ""                 # the part as the plan first wrote it: what "done" is keyed on across versions
-
+    writes: list[dict] | None = None  # the operations a model planner declared; None: read from the clause
     def __post_init__(self) -> None:
         self.clause = self.clause or self.goal
 
@@ -39,11 +39,13 @@ class Plan:
     subgoals: list[Subgoal]
     constraints: str = ""
     done: list[str] = field(default_factory=list)      # ids of subgoals met under any earlier version
+    question: str | None = None      # a planner that cannot plan without the user asks this instead
 
     def writes(self) -> list[dict]:
         """The writes the remaining subgoals would make, one per operation, with both ends relative to $WS: what
         the user is asked to confirm, and what the dyn graders hold the run to (#62)."""
-        return [w for s in self.subgoals if s.id not in self.done for w in clause_writes(s.clause)]
+        return [w for s in self.subgoals if s.id not in self.done
+                for w in (s.writes if s.writes is not None else clause_writes(s.clause))]
 
     def remaining(self) -> list[Subgoal]:
         return [s for s in self.subgoals if s.id not in self.done]
@@ -98,11 +100,11 @@ class TemplatePlanner:
 
     by = "template"
 
-    def plan(self, goal: str, channel: str = "gui") -> Plan:
+    def plan(self, goal: str, channel: str = "gui", **_) -> Plan:
         parts, constraints = _clauses(goal)
         return Plan(1, self.by, [Subgoal(f"s{i + 1}", p, channel) for i, p in enumerate(parts)], constraints)
 
-    def replan(self, goal: str, plan: Plan, said: list[str]) -> Plan:
+    def replan(self, goal: str, plan: Plan, said: list[str], **_) -> Plan:
         """A new version of the same parts: the template cannot read an amendment ("慢一点", "第三件不用做了"), so
         what the user said is not turned into parts -- it goes to the decider, which can ask or stop. Parts already
         met stay done, by their original clause, however repair or ask edited the text sent to the executor."""

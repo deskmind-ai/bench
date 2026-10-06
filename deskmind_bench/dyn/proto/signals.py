@@ -25,6 +25,10 @@ def missing_files(plan: Plan, ws: Path) -> list[str]:
 
     Only the first file a subgoal names counts, the one it acts on; a target name ("改名为 X.txt") is supposed not to
     exist yet."""
+    declared = [w for s in plan.remaining() if s.writes is not None for w in s.writes]
+    if declared:   # a model planner said which files it acts on: play them on the workspace as it is now
+        from .plan_model import dry_run, tree
+        return [p.split("'")[1] for p in dry_run(declared, tree(ws)).problems if p.endswith("is not there")]
     out = []
     for s in plan.remaining():
         files = _FILE.findall(s.goal)
