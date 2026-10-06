@@ -17,7 +17,7 @@ sys.path.insert(0, str(REPO))
 from deskmind_bench.dyn.proto.decide import ScriptedDecider            # noqa: E402
 from deskmind_bench.dyn.proto.events import EventLog, read             # noqa: E402
 from deskmind_bench.dyn.proto.executors import FnExecutor, Result      # noqa: E402
-from deskmind_bench.dyn.proto.orchestrator import Budget, run          # noqa: E402
+from deskmind_bench.dyn.proto.orchestrator import Budget, NoHooks, run # noqa: E402
 from deskmind_bench.dyn.proto.plan import Subgoal, TemplatePlanner, clause_writes   # noqa: E402
 from deskmind_bench.dyn.proto.signals import where_expected            # noqa: E402
 from deskmind_bench.dyn.proto.user import ScriptedUser                 # noqa: E402
@@ -247,13 +247,12 @@ class Runner(unittest.TestCase):
 
     def go(self, task, ws, decide, fn=None):
         from deskmind_bench.dyn.proto.runner import ChangeHooks
-        run_dir = Path(tempfile.mkdtemp())
+        run_dir = self.last_run_dir = Path(tempfile.mkdtemp())
         hooks = ChangeHooks(task, ws, run_dir, "t1")
         fn = fn or executor()
         out = run(GOAL, ws, planner=TemplatePlanner(), decider=ScriptedDecider(decide), executor=FnExecutor(fn),
                   user=ScriptedUser(queue=run_dir / "user_queue.jsonl"), log=EventLog(run_dir / "orchestrator.jsonl", "t1"),
                   hooks=hooks)
-        hooks.close()
         return out, read(run_dir / "orchestrator.jsonl"), read(run_dir / "changes.jsonl"), fn
 
     def test_before_subgoal_fires_before_that_part_runs(self):
@@ -275,6 +274,31 @@ class Runner(unittest.TestCase):
         self.assertIn({"t": "user_msg", "kind": "interject", "text": "第三件不用做了"},
                       [{k: e[k] for k in ("t", "kind", "text")} for e in ev if e["t"] == "user_msg"])
         self.assertEqual(out["state"], "stopped")
+
+    def test_hooks_are_closed_however_the_run_ends(self):
+        """A run that dies mid-way still closes its hooks: a dialog a change put up must not stay on the screen."""
+        closed = []
+
+        class Hooks(NoHooks):
+            def close(self):
+                closed.append(True)
+
+        def boom(sg, ws, max_actions):
+            raise KeyboardInterrupt
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        run_dir = Path(tempfile.mkdtemp())
+        with self.assertRaises(KeyboardInterrupt):
+            run(GOAL, ws, planner=TemplatePlanner(), decider=ScriptedDecider(lambda ctx: "stop"),
+                executor=FnExecutor(boom), user=ScriptedUser(queue=run_dir / "user_queue.jsonl"),
+                log=EventLog(run_dir / "orchestrator.jsonl", "t1"), hooks=Hooks())
+        self.assertEqual(closed, [True])
+
+    def test_each_part_started_is_logged_with_the_reference_it_matched(self):
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        _, ev, _, _ = self.go(self.task([]), ws, lambda ctx: "continue")
+        rows = [json.loads(l) for l in (self.last_run_dir / "hooks.jsonl").read_text(encoding="utf-8").splitlines()]
+        self.assertEqual([(r["k"], r["reference"]) for r in rows], [(1, "part1"), (2, "part2"), (3, "part3")])
+        self.assertIn("资料", rows[0]["clause"])
 
     def test_at_checkpoint_fires_after_the_part_that_passes_it(self):
         from deskmind_bench.task import Checkpoint

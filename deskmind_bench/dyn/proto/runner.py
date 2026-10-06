@@ -10,6 +10,10 @@ The runner reads the task (its changes, its reference plan, its checkpoints); th
 
 at_action needs the per-step loop and is left to hands (hands#22) when it runs a task itself. What a change makes the
 user say is appended to <run_dir>/user_queue.jsonl, where the orchestrator's user reads interjections.
+
+Matching by position fails quietly when the orchestrator splits the goal differently from reference_plan, so every
+part started is written to <run_dir>/hooks.jsonl with the reference id it was matched to: the T7 analysis reads it
+to find runs where a before_subgoal change landed on a different part than intended.
 """
 from __future__ import annotations
 
@@ -21,12 +25,14 @@ from ..inject import Injector
 
 
 class ChangeHooks:
-    def __init__(self, task, ws: Path, run_dir: Path, run_id: str, injector: Injector | None = None) -> None:
+    def __init__(self, task, ws: Path, run_dir: Path, run_id: str, injector: Injector | None = None,
+                 fixture_dir: Path | None = None) -> None:
         self.task, self.ws, self.run_dir = task, Path(ws), Path(run_dir)
+        # The pristine fixture, for at_state checks that tell what the run changed (unconfirmed_writes and the like).
+        self.run_info = {"dir": str(self.run_dir), "fixture_dir": str(fixture_dir) if fixture_dir else None}
         self.injector = injector or Injector(ws, run_dir, run_id, apps=tuple({task.app, *task.reset_apps}))
         self.order = [p.get("id") for p in task.reference_plan]
         self.by_name = {c.name: c for c in task.checkpoints}
-        self.asked: set[str] = set()
 
     def _fire(self, change) -> None:
         said = self.injector.fire(change)
@@ -44,12 +50,15 @@ class ChangeHooks:
 
     def before_subgoal(self, k: int, clause: str) -> None:
         ref = self.order[k - 1] if 0 < k <= len(self.order) else None
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+        with (self.run_dir / "hooks.jsonl").open("a", encoding="utf-8") as f:
+            f.write(json.dumps({"k": k, "clause": clause, "reference": ref}, ensure_ascii=False) + "\n")
         for c in self._pending("before_subgoal"):
             if c.trigger["before_subgoal"] == ref:
                 self._fire(c)
 
     def after_subgoal(self) -> None:
-        ctx = GradeContext(workspace=self.ws, vars=self.task.vars, run={"dir": str(self.run_dir)})
+        ctx = GradeContext(workspace=self.ws, vars=self.task.vars, run=self.run_info)
         for c in self._pending("at_checkpoint") + self._pending("at_state"):
             if "at_checkpoint" in c.trigger:
                 cp = self.by_name.get(c.trigger["at_checkpoint"])
