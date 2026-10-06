@@ -22,7 +22,8 @@ from typing import Any
 VERSION = 1
 
 CHOICES = ("continue", "repair", "replan", "ask", "handoff", "stop")
-DECIDERS = ("local-0.8b", "local-4b", "cloud", "template")
+#: Who made a plan or a decision. "code": decided without asking any model (a part met, no signal).
+DECIDERS = ("local-0.8b", "local-4b", "cloud", "template", "code")
 CHANNELS = ("gui", "oplist", "app")
 OUTCOMES = ("met", "unmet", "needs_user", "handoff", "failed")
 ASK_KINDS = ("clarify", "plan_confirm", "step_approval")

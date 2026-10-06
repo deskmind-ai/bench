@@ -90,6 +90,9 @@ class Events(unittest.TestCase):
                       ev.validate(e("subgoal_end", 1, id="p", plan_version=1, outcome="met", signals=["odd"],
                                     steps=1, hands_run=None, model_calls={"local": 0, "cloud": 0})))
         self.assertEqual(ev.validate({**PLAN, "v": 2})[0], "plan_proposed: v is 2, not 1")
+        code = e("decision", 1, dp=1, choice="continue", plan_version=1, signals=[], by="code", options=[],
+                 probabilities=None)
+        self.assertEqual(ev.validate(code), [], "a decision made in code, with no model call, is recorded as such")
         self.assertEqual(ev.validate({"t": "thought"}), ["unknown event 'thought'"])
 
     def test_change_events_never_come_from_the_orchestrator(self):
