@@ -55,11 +55,13 @@ def run(goal: str, ws: Path | None, *, planner, decider, executor, user, log: Ev
     turns = [0]
     if not _confirm(plan, confirmed, user, log, turns):
         return log.done("stopped", "用户没有同意计划，什么都没做。")
-    used, replans, repairs, done_goals, total_parts = 0, 0, {}, [], len(plan.subgoals)
+    used, replans, repairs, done_goals, skipped, total_parts = 0, 0, {}, [], [], len(plan.subgoals)
     i = 0
     while True:
         todo = plan.remaining()
         if not todo:
+            if skipped:   # moved on past a part that was not met: the task is not done, and the report says which
+                return log.done("failed", f"没有完成：{'；'.join(skipped)}；已完成：{'；'.join(done_goals) or '无'}")
             return log.done("completed", "完成：" + "；".join(done_goals))
         sg = todo[0]
         left = max(budget.max_actions - used, 0)
@@ -71,7 +73,7 @@ def run(goal: str, ws: Path | None, *, planner, decider, executor, user, log: Ev
         used += res.steps
         if res.outcome == "met":
             plan.done.append(sg.id)
-            done_goals.append(sg.goal)
+            done_goals.append(sg.clause)
         heard = user.interjections()
         for h in heard:
             log.user_msg("interject", h, None)
@@ -81,7 +83,7 @@ def run(goal: str, ws: Path | None, *, planner, decider, executor, user, log: Ev
                           parts_total=total_parts, apps=apps, check_apps=check_apps)
         log.subgoal_end(sg.id, plan.version, res.outcome, sigs, res.steps, res.hands_run, res.model_calls)
         ctx = Context(goal=goal, plan_version=plan.version, parts=_parts(plan, sg.id), outcome=res.outcome,
-                      detail=res.detail, signals=sigs,
+                      detail=res.detail, signals=sigs, said=list(said),
                       can_repair=res.outcome != "met" and repairs.get(sg.id, 0) < budget.max_repairs_per_part,
                       can_replan=replans < budget.max_replans,
                       can_ask=turns[0] < budget.max_dialogue_turns, can_handoff=can_handoff)
@@ -92,8 +94,9 @@ def run(goal: str, ws: Path | None, *, planner, decider, executor, user, log: Ev
         choice, probs, by = decider.decide(ctx)
         log.decision(choice, plan.version, sigs, by, ctx.options(), probs)
         if choice == "continue":
-            if res.outcome != "met":           # moved on without it: it is not done, and is not tried again
+            if res.outcome != "met":           # moved on without it: not tried again, and the run cannot complete
                 plan.done.append(sg.id)
+                skipped.append(sg.clause)
             continue
         if choice == "repair":
             repairs[sg.id] = repairs.get(sg.id, 0) + 1
@@ -103,7 +106,7 @@ def run(goal: str, ws: Path | None, *, planner, decider, executor, user, log: Ev
         if choice == "replan":
             replans += 1
             plan = planner.replan(goal, plan, said)
-            total_parts = len(done_goals) + len(plan.subgoals)
+            total_parts = len(done_goals) + len(skipped) + len(plan.subgoals)
             log.plan_proposed(plan.version, planner.by, [s.to_event() for s in plan.subgoals], plan.writes())
             if not _confirm(plan, confirmed, user, log, turns):
                 return log.done("stopped", f"用户没有同意修改后的计划；已完成：{'；'.join(done_goals) or '无'}")

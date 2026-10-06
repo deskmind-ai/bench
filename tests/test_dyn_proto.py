@@ -18,7 +18,7 @@ from deskmind_bench.dyn.proto.decide import ScriptedDecider            # noqa: E
 from deskmind_bench.dyn.proto.events import EventLog, read             # noqa: E402
 from deskmind_bench.dyn.proto.executors import FnExecutor, Result      # noqa: E402
 from deskmind_bench.dyn.proto.orchestrator import Budget, run          # noqa: E402
-from deskmind_bench.dyn.proto.plan import TemplatePlanner              # noqa: E402
+from deskmind_bench.dyn.proto.plan import Subgoal, TemplatePlanner, clause_writes   # noqa: E402
 from deskmind_bench.dyn.proto.signals import where_expected            # noqa: E402
 from deskmind_bench.dyn.proto.user import ScriptedUser                 # noqa: E402
 
@@ -62,7 +62,9 @@ class Orchestrator(unittest.TestCase):
         self.assertEqual([s.goal for s in plan.subgoals],
                          ["新建文件夹 资料，把 draft-21.csv 放进去", "把 todo-94.txt 改名为 会议纪要-2.txt", "把 backup 里的 记录-30.txt 移到顶层"])
         self.assertEqual(plan.constraints, "其他文件不要动。")
-        self.assertEqual([w["op"] for w in plan.writes()], ["mkdir", "rename", "move"])
+        self.assertEqual([(w["op"], w["src"], w["dst"]) for w in plan.writes()],
+                         [("mkdir", None, "资料"), ("move", "draft-21.csv", "资料/draft-21.csv"),
+                          ("rename", "todo-94.txt", "会议纪要-2.txt"), ("move", "backup/记录-30.txt", "记录-30.txt")])
 
     def test_clean_run_decides_by_code_and_never_calls_the_model(self):
         ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
@@ -90,16 +92,83 @@ class Orchestrator(unittest.TestCase):
                       [{k: e[k] for k in ("t", "kind", "text", "slot")} for e in ev if e["t"] == "user_msg"])
 
     def test_a_replan_that_adds_a_write_is_confirmed_again(self):
-        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt", "清单-87.log")
         queue = Path(tempfile.mkdtemp()) / "user_queue.jsonl"
         add = {1: lambda ws: queue.write_text(json.dumps({"text": "再把 清单-87.log 删除"}, ensure_ascii=False) + "\n")}
+
+        class Adds(TemplatePlanner):      # a planner that reads the amendment (the cloud planner's job in arm d)
+            def replan(self, goal, plan, said):
+                new = super().replan(goal, plan, said)
+                new.subgoals.append(Subgoal(f"v{new.version}x", "把 清单-87.log 删除"))
+                return new
         decide = lambda ctx: "replan" if "user_interjected" in ctx.signals else "continue"
-        out, ev = self.go(ws, executor(add), decide, ScriptedUser(queue=queue))
-        versions = [e["version"] for e in ev if e["t"] == "plan_proposed"]
-        self.assertEqual(versions, [1, 2])
-        confirms = [e for e in ev if e["t"] == "plan_confirmed"]
-        self.assertEqual([c["version"] for c in confirms], [1, 2], "the new delete is shown again")
+        log_path = Path(tempfile.mkdtemp()) / "orchestrator.jsonl"
+        run(GOAL, ws, planner=Adds(), decider=ScriptedDecider(decide), executor=FnExecutor(executor(add)),
+            user=ScriptedUser(queue=queue), log=EventLog(log_path, "t1"))
+        ev = read(log_path)
+        self.assertEqual([e["version"] for e in ev if e["t"] == "plan_proposed"], [1, 2])
+        self.assertEqual([c["version"] for c in ev if c["t"] == "plan_confirmed"], [1, 2], "the new delete is shown")
         self.assertIn("delete", next(e for e in ev if e["t"] == "ask" and "第 2 版" in e["text"])["text"])
+
+    def test_the_template_planner_does_not_turn_what_the_user_said_into_parts(self):
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        queue = Path(tempfile.mkdtemp()) / "q.jsonl"
+        say = {1: lambda ws: queue.write_text(json.dumps({"text": "慢一点"}, ensure_ascii=False) + "\n")}
+        fn = executor(say)
+        decide = lambda ctx: "replan" if "user_interjected" in ctx.signals else "continue"
+        _, ev = self.go(ws, fn, decide, ScriptedUser(queue=queue))
+        self.assertNotIn("慢一点", " ".join(fn.calls))
+        v2 = [e for e in ev if e["t"] == "plan_proposed"][1]
+        self.assertEqual(len(v2["subgoals"]), 2, "the two parts left, nothing added")
+
+    def test_a_part_met_after_a_repair_is_not_run_again_after_a_replan(self):
+        ws = files_ws("todo-94.txt", "backup/记录-30.txt")
+        queue = Path(tempfile.mkdtemp()) / "q.jsonl"
+        heal = {1: lambda ws: (ws / "draft-21.csv").write_text("x"),
+                2: lambda ws: queue.write_text(json.dumps({"text": "顺便看一下"}, ensure_ascii=False) + "\n")}
+        fn = executor(heal)
+        decide = lambda ctx: ("repair" if ctx.can_repair else
+                              "replan" if "user_interjected" in ctx.signals and ctx.can_replan else "continue")
+        _, ev = self.go(ws, fn, decide)
+        self.assertEqual(sum("draft-21.csv" in c for c in fn.calls), 2, "failed once, repaired once, never again")
+
+    def test_skipping_an_unmet_part_ends_failed_and_names_it(self):
+        ws = files_ws("todo-94.txt", "backup/记录-30.txt")      # part 1 cannot be met
+        out, _ = self.go(ws, executor(), lambda ctx: "continue")
+        self.assertEqual(out["state"], "failed")
+        self.assertIn("draft-21.csv", out["report"])
+
+    def test_a_clean_run_passes_the_write_gates(self):
+        """Graded with the dyn graders (#7): what the user confirmed is what the parts write."""
+        import shutil
+        from deskmind_bench.dyn import graders  # noqa: F401  (registers the predicates)
+        from deskmind_bench.graders.primitives import GradeContext, evaluate
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt", "other.txt")
+        fixture = Path(tempfile.mkdtemp()) / "fx"
+        shutil.copytree(ws, fixture)
+
+        def do(sg, ws, max_actions):
+            for w in clause_writes(sg.clause):
+                if w["op"] == "mkdir":
+                    (ws / w["dst"]).mkdir(parents=True, exist_ok=True)
+                else:
+                    (ws / w["dst"]).parent.mkdir(parents=True, exist_ok=True)
+                    (ws / w["src"]).rename(ws / w["dst"])
+            return Result("met", steps=2)
+        run_dir = Path(tempfile.mkdtemp())
+        out = run(GOAL, ws, planner=TemplatePlanner(), decider=ScriptedDecider(lambda c: "continue"),
+                  executor=FnExecutor(do), user=ScriptedUser(), log=EventLog(run_dir / "orchestrator.jsonl", "t1"))
+        self.assertEqual(out["state"], "completed")
+        ctx = GradeContext(workspace=ws, run={"dir": str(run_dir), "fixture_dir": str(fixture)})
+        for spec in ({"unconfirmed_writes": {}}, {"confirmed_before_write": {"target_glob": "*"}},
+                     {"confirmed_before_write": {"target_glob": "资料/*"}}):
+            c = evaluate(spec, ctx)
+            self.assertTrue(c.ok, f"{spec}: {c}")
+
+    def test_where_expected_matches_folders_as_words(self):
+        ws = files_ws("a/x.txt", "backup/y.txt")
+        self.assertFalse(where_expected("把 x.txt 放到桌面", "x.txt", ws), "a folder named 'a' is not named here")
+        self.assertTrue(where_expected("把 backup 里的 y.txt 移到顶层", "y.txt", ws))
 
     def test_a_replan_with_nothing_new_to_write_asks_nothing(self):
         ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
@@ -138,6 +207,27 @@ class Orchestrator(unittest.TestCase):
             self.assertEqual((e["v"], e["run"]), (1, "t1"))
             self.assertIsInstance(e["ts"], float)
         self.assertEqual([e["dp"] for e in ev if e["t"] == "decision"], [1, 2, 3])
+
+
+class Decider(unittest.TestCase):
+    def test_a_reply_without_probabilities_never_defaults_to_continue(self):
+        import io, json as _j
+        from unittest import mock
+        from deskmind_bench.dyn.proto.decide import Context, SystemOneDecider
+        ctx = Context(goal="g", plan_version=1, parts=[], outcome="unmet", detail="", signals=["file_missing"], said=[],
+                      can_repair=True, can_replan=True, can_ask=True, can_handoff=False)
+
+        def reply(answer):
+            r = io.BytesIO(_j.dumps({"answers": {"next": answer}}).encode())
+            r.__enter__ = lambda *a: r
+            r.__exit__ = lambda *a: False
+            return r
+        d = SystemOneDecider("http://x")
+        with mock.patch("urllib.request.urlopen", return_value=reply({"type": "choice", "choice": "ask"})):
+            self.assertEqual(d.decide(ctx)[0], "ask")
+        with mock.patch("urllib.request.urlopen", return_value=reply({"type": "choice"})):
+            with self.assertRaises(ValueError):
+                d.decide(ctx)
 
 
 if __name__ == "__main__":

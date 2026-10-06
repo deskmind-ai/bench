@@ -26,6 +26,7 @@ class Context:
     outcome: str
     detail: str
     signals: list[str]
+    said: list[str]              # what the user has said so far (answers and interjections), for the decider only
     can_repair: bool
     can_replan: bool
     can_ask: bool
@@ -55,13 +56,14 @@ class SystemOneDecider:
         opts = ctx.options()
         body = {
             "state": {"goal": ctx.goal, "plan": ctx.parts, "last_part": {"outcome": ctx.outcome, "detail": ctx.detail[:400]},
-                      "signals": ctx.signals},
+                      "signals": ctx.signals, "user_said": ctx.said},
             "questions": {"next": {"type": "choice",
                                    "instructions": {"goal": ctx.goal, "rules": [
                                        "Decide what the agent does next, given the plan and what just happened.",
                                        "Signals were detected by code and are reliable. Do not continue past a "
                                        "signal that makes the next part impossible."]},
-                                   "criteria": {o: _DESCRIBE[o] for o in opts}}},
+                                   # v1 list form (protocol #36 item 1): the order is the list's
+                                   "criteria": [{"key": o, "description": _DESCRIBE[o]} for o in opts]}},
         }
         req = urllib.request.Request(self.url + "/v1/systemone", data=json.dumps(body).encode(),
                                      headers={"Content-Type": "application/json",
@@ -69,8 +71,13 @@ class SystemOneDecider:
         with urllib.request.urlopen(req, timeout=self.timeout) as r:
             reply = json.load(r)
         ans = reply["answers"]["next"]
-        probs = ans.get("probabilities") or {}
-        choice = max(opts, key=lambda o: probs.get(o, 0.0))       # ties: first in the offered order
+        probs = ans.get("probabilities")
+        if probs:
+            choice = max(opts, key=lambda o: probs.get(o, 0.0))   # ties: first in the offered order
+        elif ans.get("choice") in opts:
+            choice, probs = ans["choice"], {}
+        else:   # no usable answer: never fall back to the first option, which is "continue"
+            raise ValueError(f"the decider's reply has neither probabilities nor an offered choice: {ans!r}")
         tier = (reply.get("routing") or {}).get("by")
         by = {"fast": "local-0.8b", "strong": "local-4b"}.get(tier, "local-4b")
         return choice, {o: round(float(probs.get(o, 0.0)), 4) for o in opts}, by

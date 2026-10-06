@@ -5,7 +5,9 @@
 
 The per-part executor is `deskmind-hands do` on the real desktop; decisions go to the Brain at --systemone-url.
 Events land in <run-dir>/orchestrator.jsonl; the bench runner's changes go to <run-dir>/changes.jsonl and user
-interjections to <run-dir>/user_queue.jsonl, which the orchestrator reads at decision points.
+interjections to <run-dir>/user_queue.jsonl, which the orchestrator reads at decision points. Injector.fire (#8)
+returns a change's user_says texts to its caller instead of queueing them: whoever drives the changes appends each as
+{"text": ...} to user_queue.jsonl.
 """
 from __future__ import annotations
 

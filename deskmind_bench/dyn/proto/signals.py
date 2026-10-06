@@ -13,7 +13,10 @@ def where_expected(goal: str, name: str, ws: Path) -> bool:
     ("backup 里的 记录-30.txt"). Somewhere else in the tree does not count: that is the file having been moved."""
     if (ws / name).exists():
         return True
-    folders = [d for d in ws.rglob("*") if d.is_dir() and d.name in goal]
+    # A folder counts only when the goal names it as a word ("backup 里的", "old 文件夹"), not as a substring: a
+    # folder named "a" is not named by every goal with an "a" in it.
+    named = lambda n: re.search(rf"(?:^|[\s「“\"'/，,]){re.escape(n)}(?=$|[\s」”\"'/，,。]|里|中|内|文件夹)", goal)
+    folders = [d for d in ws.rglob("*") if d.is_dir() and named(d.name)]
     return any((d / name).exists() for d in folders)
 
 

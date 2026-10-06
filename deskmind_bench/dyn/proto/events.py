@@ -59,5 +59,4 @@ class EventLog:
         return self._emit("done", state=state, report=report)
 
 
-def read(path: Path) -> list[dict]:
-    return [json.loads(line) for line in Path(path).read_text(encoding="utf-8").splitlines() if line.strip()]
+read = schema.read   # validates every line
