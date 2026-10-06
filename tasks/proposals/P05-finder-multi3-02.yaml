@@ -1,5 +1,6 @@
 # One goal, 3 independent Finder jobs (suffix, move_up, create_move); every part is its own checkpoint.
 # From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi3-02). See README.md here.
+# The file at its new place must hold what the original held: an empty file of that name does not pass.
 id: P05-finder-multi3-02
 title: Finder 一个目标里 3 件事：加后缀、移到顶层、新建文件夹并移入
 surface: finder
@@ -23,10 +24,12 @@ grade:
   - name: part1_suffix
     check:
       all_of:
-      - file_exists:
+      - file_text_equals:
           path: $WS/plan-68-final.log
-      - file_exists:
+          value: "plan-68.log\n"
+      - file_text_equals:
           path: $WS/notes-40-final.log
+          value: "notes-40.log\n"
       - file_absent:
           path: $WS/plan-68.log
       - file_absent:
@@ -34,15 +37,17 @@ grade:
   - name: part2_move_up
     check:
       all_of:
-      - file_exists:
+      - file_text_equals:
           path: $WS/说明-20.txt
+          value: "说明-20.txt\n"
       - file_absent:
           path: $WS/final/说明-20.txt
   - name: part3_create_move
     check:
       all_of:
-      - file_exists:
+      - file_text_equals:
           path: $WS/drafts/plan-60.txt
+          value: "plan-60.txt\n"
       - file_absent:
           path: $WS/plan-60.txt
   forbid:
