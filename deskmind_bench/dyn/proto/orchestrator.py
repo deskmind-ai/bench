@@ -111,46 +111,67 @@ def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, ca
         if sg.clause not in started:
             started.append(sg.clause)
             hooks.before_subgoal(len(started), sg.clause)
-        log.subgoal_start(sg.id, plan.version, sg.channel, per)
-        res = executor.run(sg, ws, per, user, log, plan.constraints)
-        used += res.steps
-        hooks.after_subgoal()                   # a change waiting on a state fires now, before anything is decided
-        if res.outcome == "met":
-            plan.done.append(sg.id)
-            done_goals.append(sg.clause)
-        heard = user.interjections()
-        for h in heard:
-            log.user_msg("interject", h, None)
-        said += heard
-        sigs = sig.detect(outcome=res.outcome, detail=res.detail, plan=plan, ws=ws, interjections=heard,
-                          actions_used=used, actions_total=budget.max_actions, parts_done=len(done_goals),
-                          parts_total=total_parts, apps=apps, check_apps=check_apps)
-        log.subgoal_end(sg.id, plan.version, res.outcome, sigs, res.steps, res.hands_run, res.model_calls)
-        ctx = Context(goal=goal, plan_version=plan.version, parts=_parts(plan, sg.id), outcome=res.outcome,
-                      detail=res.detail, signals=sigs, said=list(said),
-                      can_repair=res.outcome != "met" and repairs.get(sg.id, 0) < budget.max_repairs_per_part,
-                      can_replan=replans < budget.max_replans,
-                      can_ask=turns[0] < budget.max_dialogue_turns, can_handoff=can_handoff)
-        choice = by_code(ctx)
-        if choice:
-            log.decision(choice, plan.version, sigs, "code", ctx.options(), None)
-            continue
-        choice, probs, by = decider.decide(ctx)
-        log.decision(choice, plan.version, sigs, by, ctx.options(), probs)
+        # What the user said before this part starts is heard before it runs (bench#17 review: a "第三件不用做了"
+        # said before the third part was read only after the part had been done).
+        early = user.interjections()
+        pre = None
+        if early:
+            for h in early:
+                log.user_msg("interject", h, None)
+            said += early
+            sigs = ["user_interjected"]
+            ctx = Context(goal=goal, plan_version=plan.version, parts=_parts(plan, sg.id), outcome="not_started",
+                          detail="用户在这一件开始之前说了话", signals=sigs, said=list(said), can_repair=False,
+                          can_replan=replans < budget.max_replans,
+                          can_ask=turns[0] < budget.max_dialogue_turns, can_handoff=can_handoff)
+            choice, probs, by = decider.decide(ctx)
+            log.decision(choice, plan.version, sigs, by, ctx.options(), probs)
+            if choice != "continue":
+                pre = choice
+        if pre is not None:
+            choice, outcome = pre, "not_started"
+        else:
+            log.subgoal_start(sg.id, plan.version, sg.channel, per)
+            res = executor.run(sg, ws, per, user, log, plan.constraints)
+            used += res.steps
+            hooks.after_subgoal()                   # a change waiting on a state fires now, before anything is decided
+            if res.outcome == "met":
+                plan.done.append(sg.id)
+                done_goals.append(sg.clause)
+            heard = user.interjections()
+            for h in heard:
+                log.user_msg("interject", h, None)
+            said += heard
+            sigs = sig.detect(outcome=res.outcome, detail=res.detail, plan=plan, ws=ws, interjections=heard,
+                              actions_used=used, actions_total=budget.max_actions, parts_done=len(done_goals),
+                              parts_total=total_parts, apps=apps, check_apps=check_apps)
+            log.subgoal_end(sg.id, plan.version, res.outcome, sigs, res.steps, res.hands_run, res.model_calls)
+            ctx = Context(goal=goal, plan_version=plan.version, parts=_parts(plan, sg.id), outcome=res.outcome,
+                          detail=res.detail, signals=sigs, said=list(said),
+                          can_repair=res.outcome != "met" and repairs.get(sg.id, 0) < budget.max_repairs_per_part,
+                          can_replan=replans < budget.max_replans,
+                          can_ask=turns[0] < budget.max_dialogue_turns, can_handoff=can_handoff)
+            choice = by_code(ctx)
+            if choice:
+                log.decision(choice, plan.version, sigs, "code", ctx.options(), None)
+                continue
+            choice, probs, by = decider.decide(ctx)
+            log.decision(choice, plan.version, sigs, by, ctx.options(), probs)
+            outcome = res.outcome
         if choice == "continue":
-            if res.outcome != "met":           # moved on without it: not tried again, and the run cannot complete
+            if outcome != "met":           # moved on without it: not tried again, and the run cannot complete
                 plan.done.append(sg.id)
                 skipped.append(sg.clause)
             continue
         if choice == "repair":
             repairs[sg.id] = repairs.get(sg.id, 0) + 1
             # The same part again, told what went wrong last time (a signal name and the run's last words).
-            sg.goal = f"{sg.goal}（上一次没有成功：{', '.join(sigs) or res.outcome}）"
+            sg.goal = f"{sg.goal}（上一次没有成功：{', '.join(sigs) or outcome}）"
             continue
         if choice == "replan":
             replans += 1
             try:
-                plan = planner.replan(goal, plan, said, ws=ws, why=", ".join(sigs) or res.outcome,
+                plan = planner.replan(goal, plan, said, ws=ws, why=", ".join(sigs) or outcome,
                                       done=list(done_goals))
             except PlanFailed as exc:
                 return log.done("failed", f"修改后的计划没有通过检查：{exc}；已完成：{'；'.join(done_goals) or '无'}")
@@ -160,7 +181,7 @@ def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, ca
                 return log.done("stopped", f"用户没有同意修改后的计划；已完成：{'；'.join(done_goals) or '无'}")
             continue
         if choice == "ask":
-            text = f"「{sg.goal}」没有按预期完成（{', '.join(sigs) or res.outcome}）。接下来怎么办？"
+            text = f"「{sg.goal}」没有按预期完成（{', '.join(sigs) or outcome}）。接下来怎么办？"
             log.ask("clarify", text, [])
             hooks.on_ask("clarify", text)
             reply, _, slot = user.respond(text)
@@ -172,4 +193,4 @@ def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, ca
             continue
         if choice == "handoff":
             return log.done("handoff", f"交给云端模型；已完成：{'；'.join(done_goals) or '无'}")
-        return log.done("stopped", f"停下：{', '.join(sigs) or res.outcome}；已完成：{'；'.join(done_goals) or '无'}")
+        return log.done("stopped", f"停下：{', '.join(sigs) or outcome}；已完成：{'；'.join(done_goals) or '无'}")
