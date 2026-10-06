@@ -7,8 +7,11 @@ Every change fired is recorded in ``changes.jsonl`` (events.py); a dialog's answ
 Nothing here is shown to the agent: a user message is handed back to the caller, which delivers it as the user's.
 
 Effects:
-    fs: {op: mv | rm | touch | write | mkdir, src, dst | path, text}   inside the workspace only
-    dialog: {title, text, buttons, default, gold, distract}             a real `display dialog`, answered or not
+    fs: {op: mv | rm | touch | write | mkdir, src, dst | path, text}   inside the workspace, never the workspace itself
+    dialog: {title, text, buttons, default, gold, distract,             a real `display dialog`, answered or not
+             giving_up_after}
+
+A change is checked whole before any of it is carried out: one refused effect leaves the others undone.
     notify: {title, text}                                               a notification banner, non-blocking
     quit_app: <bundle id> / launch_app: <bundle id>                     only bundles the task allows
     user_says: <text>                                                   handed back for the user channel
@@ -59,11 +62,33 @@ class Injector:
 
     # -- effects --------------------------------------------------------------
 
-    def _path(self, s: str) -> Path:
+    def _path(self, s: str, *, root_ok: bool = False) -> Path:
+        """A path inside the workspace. The workspace itself only where that is harmless (mkdir): removed or moved
+        away, it would take the run's ground truth with it."""
         p = Path(str(s).replace("$WS", str(self.ws))).resolve()
+        if p == self.ws and not root_ok:
+            raise ValueError(f"a change may not remove or move the workspace itself: {s!r}")
         if p != self.ws and self.ws not in p.parents:
             raise ValueError(f"a change may only touch the workspace: {s!r}")
         return p
+
+    _FS_OPS = ("mv", "rename", "rm", "mkdir", "touch", "write")
+
+    def _check(self, change) -> None:
+        """Every effect of a change checked before any is carried out, so a refused one leaves nothing half done."""
+        for eff in change.effect:
+            (kind, spec), = eff.items()
+            if kind == "fs":
+                if spec.get("op") not in self._FS_OPS:
+                    raise ValueError(f"unknown fs op {spec.get('op')!r}")
+                for key in ("src", "dst", "path"):
+                    if key in spec:
+                        self._path(spec[key], root_ok=spec["op"] == "mkdir")
+            elif kind in ("quit_app", "launch_app"):
+                if str(spec) not in self.apps:
+                    raise ValueError(f"the task does not allow changes to {spec!r}")
+            elif kind not in ("dialog", "notify", "user_says"):
+                raise ValueError(f"unknown effect {kind!r}")
 
     def _fs(self, spec: dict) -> None:
         op = spec["op"]
@@ -75,7 +100,7 @@ class Injector:
             p = self._path(spec["path"])
             shutil.rmtree(p) if p.is_dir() else p.unlink()
         elif op == "mkdir":
-            self._path(spec["path"]).mkdir(parents=True, exist_ok=True)
+            self._path(spec["path"], root_ok=True).mkdir(parents=True, exist_ok=True)
         elif op in ("touch", "write"):
             p = self._path(spec["path"])
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -90,7 +115,9 @@ class Injector:
         buttons = list(spec.get("buttons") or ["好"])
         script = (f"display dialog {_as(spec.get('text', ''))} with title {_as(spec.get('title', ''))} "
                   f"buttons {{{', '.join(_as(b) for b in buttons)}}}"
-                  + (f" default button {_as(spec['default'])}" if spec.get("default") else ""))
+                  + (f" default button {_as(spec['default'])}" if spec.get("default") else "")
+                  # A dialog nobody answers closes by itself after this long and counts as not handled.
+                  + (f" giving up after {int(spec['giving_up_after'])}" if spec.get("giving_up_after") else ""))
         self.dialogs.append((change_id, spec, self.spawn(["/usr/bin/osascript", "-e", script])))
 
     def _app(self, bundle: str, quit_: bool) -> None:
@@ -104,6 +131,7 @@ class Injector:
         """Carry out one change (task.Change), once; returns what the user says, for the caller to deliver."""
         if change.id in self.fired:
             return []
+        self._check(change)
         self.fired.add(change.id)
         said = []
         for eff in change.effect:
@@ -132,7 +160,8 @@ class Injector:
                 outcome, button = "not_handled", None
             else:
                 out = (proc.stdout.read() if proc.stdout else "") or ""
-                button = out.split("button returned:", 1)[1].strip() if "button returned:" in out else None
+                button = (out.split("button returned:", 1)[1].split(",", 1)[0].strip() or None
+                          if "button returned:" in out and "gave up:true" not in out else None)
                 outcome = ("gold" if button == spec.get("gold") else
                            "distract" if button in (spec.get("distract") or []) else
                            "not_handled" if button is None else "other")

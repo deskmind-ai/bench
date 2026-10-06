@@ -79,6 +79,33 @@ class InjectTest(unittest.TestCase):
                 inj.fire(Change(id=f"c{id(spec)}", type="file_moved", trigger={}, effect=[{"fs": spec}]))
         self.assertTrue((self.ws / "inbox" / "a.txt").exists())
 
+    def test_never_the_workspace_itself(self):
+        """Review of #8: `rm $WS` or `mv $WS` passed the inside-the-workspace check and would wipe the run."""
+        inj = self.injector()
+        for i, spec in enumerate(({"op": "rm", "path": "$WS"}, {"op": "mv", "src": "$WS", "dst": "$WS/x"},
+                                  {"op": "rename", "src": "$WS/", "dst": "$WS/y"})):
+            with self.assertRaises(ValueError):
+                inj.fire(Change(id=f"r{i}", type="file_moved", trigger={}, effect=[{"fs": spec}]))
+        self.assertTrue((self.ws / "inbox" / "a.txt").exists())
+        inj.fire(Change(id="ok", type="file_moved", trigger={}, effect=[{"fs": {"op": "mkdir", "path": "$WS"}}]))
+
+    def test_a_refused_effect_leaves_nothing_half_done(self):
+        inj = self.injector()
+        c = Change(id="c1", type="file_moved", trigger={}, effect=[
+            {"fs": {"op": "mv", "src": "$WS/inbox/a.txt", "dst": "$WS/old/a.txt"}},
+            {"fs": {"op": "rm", "path": "$WS/../run"}}])
+        with self.assertRaises(ValueError):
+            inj.fire(c)
+        self.assertTrue((self.ws / "inbox" / "a.txt").exists(), "the first effect was not carried out")
+        self.assertFalse((self.run / "changes.jsonl").exists())
+
+    def test_a_dialog_can_give_up(self):
+        spawn = Spawner(answer=None)
+        inj = self.injector(spawn)
+        inj.fire(Change(id="p1", type="popup", trigger={}, effect=[{"dialog": {"text": "?", "buttons": ["好"],
+                                                                                "giving_up_after": 30}}]))
+        self.assertIn("giving up after 30", spawn.calls[0][-1])
+
     def test_fired_once(self):
         inj = self.injector()
         c = Change(id="c1", type="file_moved", trigger={}, effect=[{"fs": {"op": "touch", "path": "$WS/x.txt"}}])
