@@ -1,5 +1,6 @@
-"""A local text server for OpListExecutor's planner: POST {"prompt"} -> {"text"}, the model's own chat template with
-thinking off, greedy. Needs mlx_lm, so run it in brain's environment:
+"""A local text server for Tier O's planners: POST {"prompt"} -> {"text"} (OpListExecutor) and POST
+/v1/chat/completions (ModelPlanner, via plan_model.openai_chat), the model's own chat template with thinking off,
+greedy. Needs mlx_lm, so run it in brain's environment:
 
     cd ~/projj/github.com/deskmind-ai/brain
     uv run --extra mlx python -m deskmind_bench.dyn.proto.textgen models/brain-4b --port 8899 --max-tokens 1500
@@ -25,10 +26,16 @@ def main() -> None:
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):  # noqa: N802
             body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-            text = tokenizer.apply_chat_template([{"role": "user", "content": body["prompt"]}], tokenize=False,
-                                                 add_generation_prompt=True, enable_thinking=False)
-            out = generate(model, tokenizer, prompt=text, max_tokens=args.max_tokens, verbose=False)
-            data = json.dumps({"text": out}, ensure_ascii=False).encode()
+            # Two shapes: {"prompt"} -> {"text"}; and OpenAI-style /chat/completions {"messages"} -> {"choices"}, which
+            # plan_model.openai_chat speaks (ModelPlanner). Thinking is off in both, unlike mlx_lm.server's default.
+            chat = self.path.rstrip("/").endswith("chat/completions")
+            messages = body["messages"] if chat else [{"role": "user", "content": body["prompt"]}]
+            text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True,
+                                                 enable_thinking=False)
+            out = generate(model, tokenizer, prompt=text, max_tokens=int(body.get("max_tokens") or args.max_tokens),
+                           verbose=False).replace("<|im_end|>", "")
+            reply = {"choices": [{"message": {"role": "assistant", "content": out}}]} if chat else {"text": out}
+            data = json.dumps(reply, ensure_ascii=False).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(data)))
