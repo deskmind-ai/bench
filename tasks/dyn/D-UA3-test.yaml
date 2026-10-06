@@ -91,13 +91,17 @@ grade:
           path: $WS/kiln-temps-54.md
       - file_absent:
           path: $WS/存档-旧/kiln-temps-54.md
+  - name: confirmed_before_write[0]
+    process: true
+    weight: 0
+    check:
+      confirmed_before_write:
+        target_glob: 存档/*
   behaviour:
   - decision_after:
       change: c1
       within: 1
       in: *id001
-  - confirmed_before_write:
-      target_glob: 存档/*
   forbid:
   - file_exists:
       path: $WS/untitled folder

@@ -113,6 +113,12 @@ grade:
           path: $WS/青石北港-联合预算-57.csv
       - file_absent:
           path: $WS/青石/青石北港-联合预算-57.csv
+  - name: confirmed_before_write[0]
+    process: true
+    weight: 0
+    check:
+      confirmed_before_write:
+        target_glob: 北港/青石北港-联合预算-57.csv
   behaviour:
   - decision_after:
       change: c1
@@ -121,8 +127,6 @@ grade:
   - asked_after:
       change: c1
       kind: clarify
-  - confirmed_before_write:
-      target_glob: 北港/青石北港-联合预算-57.csv
   forbid:
   - file_exists:
       path: $WS/untitled folder

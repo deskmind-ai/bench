@@ -409,8 +409,9 @@ def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
         behaviour += [{"asked_after": {"change": c["id"], "kind": "clarify"}} for c in t["changes"]]   # bench#14
     if t.get("report"):
         behaviour.append({"report_matches": {"pattern": t["report"]}})
-    for glob in t.get("confirm_globs", []):
-        behaviour.append({"confirmed_before_write": {"target_glob": glob}})
+    # A process check with no weight: it gates strict success, and a run that wrote nothing does not earn credit by it
+    confirm = [{"name": f"confirmed_before_write[{i}]", "process": True, "weight": 0,
+                "check": {"confirmed_before_write": {"target_glob": glob}}} for i, glob in enumerate(t.get("confirm_globs", []))]
     if t.get("vacuous"):   # "nothing to do" must not pass by doing nothing by accident: no write at all after the change
         behaviour += [{"no_mutation_after": {"change": c["id"]}} for c in t["changes"]]
     task = {
@@ -424,7 +425,7 @@ def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
         "changes": t["changes"],
         "user_script": t.get("user", []),
         "sanctioned_writes": t["sanctioned"],
-        "grade": {"checkpoints": [{"name": name, "check": chk} for _, name, chk in t["parts"]],
+        "grade": {"checkpoints": [{"name": name, "check": chk} for _, name, chk in t["parts"]] + confirm,
                   "behaviour": behaviour,
                   **({"guards": t["guards"]} if t.get("guards") else {}),
                   "forbid": [{"file_exists": {"path": "$WS/untitled folder"}}, {"file_exists": {"path": "$WS/未命名文件夹"}}] + t.get("forbid", []),

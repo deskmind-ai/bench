@@ -98,15 +98,23 @@ grade:
             '
       - file_absent:
           path: $WS/苔藓观察-72_2026-08.md
+  - name: confirmed_before_write[0]
+    process: true
+    weight: 0
+    check:
+      confirmed_before_write:
+        target_glob: 2026-08/*
+  - name: confirmed_before_write[1]
+    process: true
+    weight: 0
+    check:
+      confirmed_before_write:
+        target_glob: 2026-09/*
   behaviour:
   - decision_after:
       change: c1
       within: 1
       in: *id001
-  - confirmed_before_write:
-      target_glob: 2026-08/*
-  - confirmed_before_write:
-      target_glob: 2026-09/*
   forbid:
   - file_exists:
       path: $WS/untitled folder
