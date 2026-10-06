@@ -1,0 +1,66 @@
+# One goal, 4 independent Finder jobs (move_up, rename, suffix, create_move); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi4-15). See README.md here.
+id: P18-finder-multi4-15
+title: Finder 一个目标里 4 件事：移到顶层、改名、加后缀、新建文件夹并移入
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  先把 reports 文件夹里的 会议纪要-2.csv 移到工作目录顶层；然后把 记录-3.txt 改名为 budget-77.txt；再给 记录-67.md 和 report-65.txt 的文件名都加上后缀 -final（扩展名之前，例如 记录-67-final.md）；最后新建文件夹 图片，把 budget-51.log 放进去。其他文件和文件夹不要动。
+fixture: proposal_multi_15
+budget:
+  max_actions: 44
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/report-56.csv
+- $WS/清单-7.log
+grade:
+  checkpoints:
+  - name: part1_move_up
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/会议纪要-2.csv
+      - file_absent:
+          path: $WS/reports/会议纪要-2.csv
+  - name: part2_rename
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/budget-77.txt
+      - file_absent:
+          path: $WS/记录-3.txt
+  - name: part3_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/记录-67-final.md
+      - file_exists:
+          path: $WS/report-65-final.txt
+      - file_absent:
+          path: $WS/记录-67.md
+      - file_absent:
+          path: $WS/report-65.txt
+  - name: part4_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/图片/budget-51.log
+      - file_absent:
+          path: $WS/budget-51.log
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mv 'reports/会议纪要-2.csv' ./
+- mv '记录-3.txt' 'budget-77.txt'
+- mv '记录-67.md' '记录-67-final.md'
+- mv 'report-65.txt' 'report-65-final.txt'
+- mkdir -p '图片'
+- mv 'budget-51.log' '图片/'

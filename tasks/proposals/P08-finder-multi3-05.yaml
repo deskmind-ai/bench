@@ -1,0 +1,58 @@
+# One goal, 3 independent Finder jobs (rename, create_move, suffix); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi3-05). See README.md here.
+id: P08-finder-multi3-05
+title: Finder 一个目标里 3 件事：改名、新建文件夹并移入、加后缀
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  First rename budget-72.csv to 计划-46.csv; then make a folder final and put todo-2.csv in it; finally add the suffix -final to the names of notes-71.csv and draft-35.log (before the extension, e.g. notes-71-final.csv). Leave every other file and folder alone.
+fixture: proposal_multi_05
+budget:
+  max_actions: 36
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/记录-68.md
+- $WS/plan-68.md
+grade:
+  checkpoints:
+  - name: part1_rename
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/计划-46.csv
+      - file_absent:
+          path: $WS/budget-72.csv
+  - name: part2_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/final/todo-2.csv
+      - file_absent:
+          path: $WS/todo-2.csv
+  - name: part3_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/notes-71-final.csv
+      - file_exists:
+          path: $WS/draft-35-final.log
+      - file_absent:
+          path: $WS/notes-71.csv
+      - file_absent:
+          path: $WS/draft-35.log
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mv 'budget-72.csv' '计划-46.csv'
+- mkdir -p 'final'
+- mv 'todo-2.csv' 'final/'
+- mv 'notes-71.csv' 'notes-71-final.csv'
+- mv 'draft-35.log' 'draft-35-final.log'

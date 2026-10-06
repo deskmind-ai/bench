@@ -1,0 +1,58 @@
+# One goal, 3 independent Finder jobs (rename, create_move, suffix); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi3-06). See README.md here.
+id: P09-finder-multi3-06
+title: Finder 一个目标里 3 件事：改名、新建文件夹并移入、加后缀
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  先把 agenda-63.md 改名为 计划-84.md；然后新建文件夹 图片，把 周报-21.csv 放进去；最后给 log-81.csv 和 说明-18.md 的文件名都加上后缀 -old（扩展名之前，例如 log-81-old.csv）。其他文件和文件夹不要动。
+fixture: proposal_multi_06
+budget:
+  max_actions: 36
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/说明-13.log
+- $WS/计划-40.txt
+grade:
+  checkpoints:
+  - name: part1_rename
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/计划-84.md
+      - file_absent:
+          path: $WS/agenda-63.md
+  - name: part2_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/图片/周报-21.csv
+      - file_absent:
+          path: $WS/周报-21.csv
+  - name: part3_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/log-81-old.csv
+      - file_exists:
+          path: $WS/说明-18-old.md
+      - file_absent:
+          path: $WS/log-81.csv
+      - file_absent:
+          path: $WS/说明-18.md
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mv 'agenda-63.md' '计划-84.md'
+- mkdir -p '图片'
+- mv '周报-21.csv' '图片/'
+- mv 'log-81.csv' 'log-81-old.csv'
+- mv '说明-18.md' '说明-18-old.md'

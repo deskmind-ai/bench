@@ -1,0 +1,66 @@
+# One goal, 4 independent Finder jobs (create_move, suffix, rename, move_up); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi4-11). See README.md here.
+id: P14-finder-multi4-11
+title: Finder 一个目标里 4 件事：新建文件夹并移入、加后缀、改名、移到顶层
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  先新建文件夹 资料，把 draft-21.csv 放进去；然后给 清单-87.log 和 会议纪要-38.md 的文件名都加上后缀 -done（扩展名之前，例如 清单-87-done.log）；再把 todo-94.txt 改名为 会议纪要-2.txt；最后把 backup 文件夹里的 记录-30.txt 移到工作目录顶层。其他文件和文件夹不要动。
+fixture: proposal_multi_11
+budget:
+  max_actions: 44
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/budget-57.txt
+- $WS/会议纪要-42.txt
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/资料/draft-21.csv
+      - file_absent:
+          path: $WS/draft-21.csv
+  - name: part2_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/清单-87-done.log
+      - file_exists:
+          path: $WS/会议纪要-38-done.md
+      - file_absent:
+          path: $WS/清单-87.log
+      - file_absent:
+          path: $WS/会议纪要-38.md
+  - name: part3_rename
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/会议纪要-2.txt
+      - file_absent:
+          path: $WS/todo-94.txt
+  - name: part4_move_up
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/记录-30.txt
+      - file_absent:
+          path: $WS/backup/记录-30.txt
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mkdir -p '资料'
+- mv 'draft-21.csv' '资料/'
+- mv '清单-87.log' '清单-87-done.log'
+- mv '会议纪要-38.md' '会议纪要-38-done.md'
+- mv 'todo-94.txt' '会议纪要-2.txt'
+- mv 'backup/记录-30.txt' ./

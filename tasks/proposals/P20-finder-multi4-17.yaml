@@ -1,0 +1,66 @@
+# One goal, 4 independent Finder jobs (rename, move_up, suffix, create_move); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi4-17). See README.md here.
+id: P20-finder-multi4-17
+title: Finder 一个目标里 4 件事：改名、移到顶层、加后缀、新建文件夹并移入
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  First rename 计划-85.md to 记录-83.md; then move budget-16.txt out of the reports folder up to the working directory; next add the suffix -v2 to the names of todo-2.md and draft-81.log (before the extension, e.g. todo-2-v2.md); finally make a folder drafts and put summary-31.csv in it. Leave every other file and folder alone.
+fixture: proposal_multi_17
+budget:
+  max_actions: 44
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/说明-68.txt
+- $WS/memo-21.md
+grade:
+  checkpoints:
+  - name: part1_rename
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/记录-83.md
+      - file_absent:
+          path: $WS/计划-85.md
+  - name: part2_move_up
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/budget-16.txt
+      - file_absent:
+          path: $WS/reports/budget-16.txt
+  - name: part3_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/todo-2-v2.md
+      - file_exists:
+          path: $WS/draft-81-v2.log
+      - file_absent:
+          path: $WS/todo-2.md
+      - file_absent:
+          path: $WS/draft-81.log
+  - name: part4_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/drafts/summary-31.csv
+      - file_absent:
+          path: $WS/summary-31.csv
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mv '计划-85.md' '记录-83.md'
+- mv 'reports/budget-16.txt' ./
+- mv 'todo-2.md' 'todo-2-v2.md'
+- mv 'draft-81.log' 'draft-81-v2.log'
+- mkdir -p 'drafts'
+- mv 'summary-31.csv' 'drafts/'
