@@ -51,16 +51,20 @@ leave it out when the writes show it."""
 @dataclass
 class Checked:
     ok: bool
-    problems: list[str]
+    problems: list[str]              # for the model, in words
+    missing: list[str] = None        # sources that were not there, as paths: what signals.file_missing reads
+
+    def __post_init__(self) -> None:
+        self.missing = self.missing or []
 
 
 def tree(ws: Path) -> set[str]:
     """Every file and folder under the workspace, relative, folders ending in '/'."""
     out = set()
     for p in ws.rglob("*"):
-        if p.name.startswith("."):
-            continue
         rel = p.relative_to(ws).as_posix()
+        if any(part.startswith(".") for part in Path(rel).parts):   # hidden files, and the harness's own .hands/
+            continue
         out.add(rel + "/" if p.is_dir() else rel)
     return out
 
@@ -69,6 +73,7 @@ def dry_run(writes: list[dict], files: set[str]) -> Checked:
     """Play the writes on a virtual tree, in order. Every problem is listed, and nothing is changed."""
     have = set(files)
     problems: list[str] = []
+    missing: list[str] = []
 
     def bad(p: str | None) -> str | None:
         if not p:
@@ -105,6 +110,7 @@ def dry_run(writes: list[dict], files: set[str]) -> Checked:
         elif op == "move":
             if not exists(src):
                 problems.append(f"{where}: {src!r} is not there")
+                missing.append(src)
             elif exists(dst):
                 problems.append(f"{where}: {dst!r} already exists")
             elif not parent_ok(dst):
@@ -120,10 +126,11 @@ def dry_run(writes: list[dict], files: set[str]) -> Checked:
         else:
             if not exists(src):
                 problems.append(f"{where}: {src!r} is not there")
+                missing.append(src)
             else:
                 s = src.rstrip("/")
                 have -= {p for p in have if p == s or p == s + "/" or p.startswith(s + "/")}
-    return Checked(not problems, problems)
+    return Checked(not problems, problems, missing)
 
 
 def parse(text: str) -> dict:
@@ -207,8 +214,10 @@ class ModelPlanner:
     def plan(self, goal: str, channel: str = "gui", *, ws: Path | None = None, said: list[str] | None = None) -> Plan:
         return self._plan(self._write(goal, Path(ws), list(said or []), [], None), 1, channel, "s")
 
-    def replan(self, goal: str, plan: Plan, said: list[str], *, ws: Path | None = None, why: str | None = None) -> Plan:
-        done = [s.goal for s in plan.subgoals if s.id in plan.done]
+    def replan(self, goal: str, plan: Plan, said: list[str], *, ws: Path | None = None, why: str | None = None,
+               done: list[str] | None = None) -> Plan:
+        """`done`: every part met under any version so far (the orchestrator's record); without it, this version's."""
+        done = list(done) if done is not None else [s.goal for s in plan.subgoals if s.id in plan.done]
         v = plan.version + 1
         new = self._plan(self._write(goal, Path(ws), list(said), done, why), v, plan.subgoals[0].channel
                          if plan.subgoals else "gui", f"v{v}s", plan.constraints)

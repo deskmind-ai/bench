@@ -152,6 +152,27 @@ class Planner(unittest.TestCase):
         (ws / "乙-合同.pdf").rename(ws / "elsewhere.pdf")
         self.assertEqual(missing_files(plan, ws), ["乙-合同.pdf"])
 
+    def test_a_name_with_a_quote_is_reported_as_missing_intact(self):
+        ws = files_ws("Bob's notes.txt")
+        plan = ModelPlanner(model({"parts": [{"goal": "移动 Bob's notes.txt", "writes": [
+            {"op": "move", "src": "Bob's notes.txt", "dst": "notes.txt"}]}]})).plan(GOAL, ws=ws)
+        (ws / "Bob's notes.txt").unlink()
+        self.assertEqual(missing_files(plan, ws), ["Bob's notes.txt"])
+
+    def test_the_harness_folder_is_not_listed(self):
+        ws = files_ws("a.txt", ".hands/runs/x.json")
+        self.assertEqual(tree(ws), {"a.txt"})
+
+    def test_a_later_replan_still_knows_what_the_first_version_finished(self):
+        """Review of #13: v2 listed what v1 finished, v3 did not -- done is the orchestrator's whole record."""
+        m = model(PLAN, PLAN, PLAN)
+        planner = ModelPlanner(m)
+        ws = files_ws("甲-预算.xlsx", "乙-合同.pdf")
+        v1 = planner.plan(GOAL, ws=ws)
+        v2 = planner.replan(GOAL, v1, [], ws=ws, why="file_missing", done=["新建文件夹「甲」"])
+        planner.replan(GOAL, v2, [], ws=ws, why="file_missing", done=["新建文件夹「甲」"])
+        self.assertIn("新建文件夹「甲」", m.seen[2][1]["content"])
+
     def test_tree_lists_folders_with_a_slash(self):
         self.assertEqual(tree(files_ws("a/b.txt")), {"a/", "a/b.txt"})
 

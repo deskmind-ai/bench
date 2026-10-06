@@ -150,7 +150,8 @@ def _run(goal, ws, *, planner, decider, executor, user, log, budget, channel, ca
         if choice == "replan":
             replans += 1
             try:
-                plan = planner.replan(goal, plan, said, ws=ws, why=", ".join(sigs) or res.outcome)
+                plan = planner.replan(goal, plan, said, ws=ws, why=", ".join(sigs) or res.outcome,
+                                      done=list(done_goals))
             except PlanFailed as exc:
                 return log.done("failed", f"修改后的计划没有通过检查：{exc}；已完成：{'；'.join(done_goals) or '无'}")
             total_parts = len(done_goals) + len(skipped) + len(plan.subgoals)
