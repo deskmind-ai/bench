@@ -79,4 +79,4 @@ class FnExecutor:
         return self.fn(sg, ws, max_actions)
 
 
-from .oplist import OpListExecutor  # noqa: E402,F401  -- Tier O's operation-list executor (#62)
+from .oplist import DeclaredWritesExecutor, OpListExecutor  # noqa: E402,F401  -- Tier O's executors (#62)

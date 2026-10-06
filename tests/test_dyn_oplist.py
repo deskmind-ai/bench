@@ -119,3 +119,34 @@ class WithTheOrchestrator(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Declared(unittest.TestCase):
+    def test_declared_writes_are_carried_out_after_a_fresh_dry_run(self):
+        from deskmind_bench.dyn.proto.oplist import DeclaredWritesExecutor
+        ws = ws_with("a.txt", "b.txt")
+        run_dir = Path(tempfile.mkdtemp())
+        sg = Subgoal("s1", "新建文件夹 资料，把 a.txt 放进去",
+                     writes=[{"op": "mkdir", "dst": "资料"}, {"op": "move", "src": "a.txt", "dst": "资料/a.txt"}])
+        res = DeclaredWritesExecutor(run_dir).run(sg, ws, 10, None, None)
+        self.assertEqual((res.outcome, res.steps), ("met", 2))
+        self.assertTrue((ws / "资料" / "a.txt").exists())
+        self.assertEqual(len(write_steps(run_dir, [{"t": "subgoal_end", "hands_run": res.hands_run}])), 2)
+
+    def test_a_source_that_moved_since_the_plan_is_unmet_and_nothing_is_written(self):
+        from deskmind_bench.dyn.proto.oplist import DeclaredWritesExecutor
+        ws = ws_with("old/b.txt")
+        sg = Subgoal("s2", "把 b.txt 放进 资料", writes=[{"op": "mkdir", "dst": "资料"}, {"op": "move", "src": "b.txt", "dst": "资料/b.txt"}])
+        res = DeclaredWritesExecutor(Path(tempfile.mkdtemp())).run(sg, ws, 10, None, None)
+        self.assertEqual(res.outcome, "unmet")
+        self.assertIn("'b.txt' is not there", res.detail)
+        self.assertFalse((ws / "资料").exists())
+
+    def test_no_declared_writes_goes_to_the_fallback(self):
+        from deskmind_bench.dyn.proto.oplist import DeclaredWritesExecutor
+        ws = ws_with("a.txt")
+        run_dir = Path(tempfile.mkdtemp())
+        fallback = OpListExecutor(Planner(ops({"op": "move", "from": "a.txt", "to": "b.txt"})), run_dir)
+        res = DeclaredWritesExecutor(run_dir, fallback=fallback).run(Subgoal("s1", "把 a.txt 改名为 b.txt"), ws, 10, None, None)
+        self.assertEqual(res.outcome, "met")
+        self.assertTrue((ws / "b.txt").exists())

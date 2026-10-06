@@ -214,3 +214,55 @@ class OpListExecutor:
         carry_out(steps, ws, trace)
         return Result("met", len(steps), detail="; ".join(f"{k} {a} {b}".strip() for k, a, b in steps), hands_run=sub,
                       model_calls=calls)
+
+
+class DeclaredWritesExecutor:
+    """Runs a subgoal whose writes a model planner declared (plan_model.ModelPlanner, #60): code carries them out, after
+    a dry run against the folder as it is now -- the world may have changed since the plan was checked. A subgoal with
+    no declared writes (the template planner's) goes to `fallback`, usually an OpListExecutor.
+
+    "met": every declared write was carried out. "unmet": the dry run refused them now (the detail says why, "… is not
+    there" for a moved source), and nothing was written."""
+
+    def __init__(self, run_dir: Path, fallback=None) -> None:
+        self.run_dir, self.fallback = Path(run_dir), fallback
+        self.n = 0
+
+    def run(self, sg, ws: Path, max_actions: int, user, log, constraints: str = ""):
+        from .executors import Result
+        from .plan_model import dry_run as plan_dry_run, tree
+        if sg.writes is None:
+            if self.fallback is None:
+                return Result("failed", 0, detail="this part declares no writes and there is no fallback executor")
+            return self.fallback.run(sg, ws, max_actions, user, log, constraints)
+        self.n += 1
+        sub = f"declared/{self.n:02d}-{sg.id}"
+        (self.run_dir / sub).mkdir(parents=True, exist_ok=True)
+        trace = self.run_dir / sub / "trace.jsonl"
+        trace.touch()
+        checked = plan_dry_run(sg.writes, tree(ws))
+        if not checked.ok:
+            return Result("unmet", 0, detail="; ".join(checked.problems), hands_run=sub)
+        if len(sg.writes) > max_actions:
+            return Result("unmet", 0, detail=f"{len(sg.writes)} writes, over this part's budget {max_actions}", hands_run=sub)
+        for w in sg.writes:
+            t0 = time.time()
+            op, src, dst = w["op"], (w.get("src") or "").rstrip("/"), (w.get("dst") or "").rstrip("/")
+            if op == "mkdir":
+                (ws / dst).mkdir()
+                detail = f"created folder '{dst}'"
+            elif op == "move":
+                if (ws / dst).exists():
+                    raise RuntimeError(f"refusing to overwrite {dst}")
+                os.rename(ws / src, ws / dst)
+                detail = f"moved '{src}' to '{dst}'"
+            else:   # delete: to the workspace's own .trash, never unlinked (the gate still sees it as a change)
+                bin_ = ws / ".trash"
+                bin_.mkdir(exist_ok=True)
+                os.rename(ws / src, bin_ / f"{int(t0 * 1000)}-{Path(src).name}")
+                detail = f"removed '{src}'"
+            with trace.open("a", encoding="utf-8") as f:
+                f.write(json.dumps({"t": "step", "ok": True, "kind": "declared", "detail": detail, "t_act_start": t0},
+                                   ensure_ascii=False) + "\n")
+        return Result("met", len(sg.writes), detail="; ".join(f"{w['op']} {w.get('src') or ''} {w.get('dst') or ''}".strip()
+                                                              for w in sg.writes), hands_run=sub)
