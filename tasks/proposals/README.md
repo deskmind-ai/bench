@@ -32,8 +32,10 @@ What they isolate: keeping several parts of a goal apart while the folder still 
 one run each on a real desktop (2026-10-06, released Peekaboo 4.7.0), the G18b router passed 0 of 20 while passing 40 of
 42 one- and two-job tasks; a frontier model choosing every step through the same harness passed 4 of 19. The file and
 folder names come from the same pools as hands' generated training tasks, so the vocabulary is not new to a model
-trained on those; the composition is. They are proposals, not part of the published diagnostic suite, and do not change
-its hash.
+trained on those; the composition is. A job counts only if the file at its new place holds what the original held, so an empty file of the right name does
+not pass. **Do not train on these fixtures or goals**: with the names coming from the training pools, a model that has
+seen them makes a score here mean little. They are proposals, not part of the published diagnostic suite, and do not
+change its hash.
 
 `P03` 到 `P22` 是同一个想法的二十个生成变体：一个目标里写了三件（P03–P12）或四件（P13–P22）互不相关的访达操作，
 取自四类——新建文件夹并放入一个文件、给文件改名、把子文件夹里的文件移到顶层、给两个文件加后缀。十二个中文，八个英文。
@@ -43,5 +45,6 @@ its hash.
 它们隔离的是：文件夹里还留着前几件事的结果时，能不能把目标的各部分分开。真实桌面上各跑一次（2026-10-06，正式版 Peekaboo
 4.7.0）：G18b 路由 20 个里通过 0 个，而同一个模型在单步和两步任务上是 42 个里通过 40 个；前沿模型通过同一套 harness 逐步选择，19 个里通过 4 个。
 文件名和文件夹名取自 hands 生成训练任务所用的同一批词库，所以对在那些任务上训练过的模型，词汇不是新的，新的是组合方式。
+新位置的文件内容必须和原文件一致才算做成，所以同名的空文件不能通过。**不要用这些 fixture 和目标做训练**：文件名取自训练词库，模型见过它们的话，这里的分数就没有多少意义。
 它们是候选任务，不属于已发布的诊断集，不改变其哈希。
 

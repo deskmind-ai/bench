@@ -1,5 +1,6 @@
 # One goal, 4 independent Finder jobs (move_up, create_move, suffix, rename); every part is its own checkpoint.
 # From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi4-13). See README.md here.
+# The file at its new place must hold what the original held: an empty file of that name does not pass.
 id: P16-finder-multi4-13
 title: Finder 一个目标里 4 件事：移到顶层、新建文件夹并移入、加后缀、改名
 surface: finder
@@ -23,24 +24,28 @@ grade:
   - name: part1_move_up
     check:
       all_of:
-      - file_exists:
+      - file_text_equals:
           path: $WS/会议纪要-18.txt
+          value: "会议纪要-18.txt\n"
       - file_absent:
           path: $WS/archive/会议纪要-18.txt
   - name: part2_create_move
     check:
       all_of:
-      - file_exists:
+      - file_text_equals:
           path: $WS/备份/draft-81.md
+          value: "draft-81.md\n"
       - file_absent:
           path: $WS/draft-81.md
   - name: part3_suffix
     check:
       all_of:
-      - file_exists:
+      - file_text_equals:
           path: $WS/draft-26-done.md
-      - file_exists:
+          value: "draft-26.md\n"
+      - file_text_equals:
           path: $WS/agenda-16-done.txt
+          value: "agenda-16.txt\n"
       - file_absent:
           path: $WS/draft-26.md
       - file_absent:
@@ -48,8 +53,9 @@ grade:
   - name: part4_rename
     check:
       all_of:
-      - file_exists:
+      - file_text_equals:
           path: $WS/memo-16.md
+          value: "budget-49.md\n"
       - file_absent:
           path: $WS/budget-49.md
   forbid:
