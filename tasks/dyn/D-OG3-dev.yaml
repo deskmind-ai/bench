@@ -120,6 +120,7 @@ grade:
       in: *id001
   - asked_after:
       change: c1
+      kind: clarify
   forbid:
   - file_exists:
       path: $WS/untitled folder

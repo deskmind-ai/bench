@@ -406,7 +406,7 @@ def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
     behaviour = [{"decision_after": {"change": c["id"], "within": c["expect"]["window"], "in": c["expect"]["accept"]}}
                  for c in t["changes"]]
     if t.get("asked"):     # an open goal: a question before anything else (outcome checks need its answer anyway)
-        behaviour += [{"asked_after": {"change": c["id"]}} for c in t["changes"]]
+        behaviour += [{"asked_after": {"change": c["id"], "kind": "clarify"}} for c in t["changes"]]   # bench#14
     if t.get("report"):
         behaviour.append({"report_matches": {"pattern": t["report"]}})
     if t.get("vacuous"):   # "nothing to do" must not pass by doing nothing by accident: no write at all after the change
