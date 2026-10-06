@@ -1,0 +1,146 @@
+# T7 v0 (deskmind#60, #62), dev: 开放目标「按项目整理」，有一个文件同属两个项目（问用户）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-OG3-dev
+title: T7 dev：开放目标「按项目整理」，有一个文件同属两个项目（问用户）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  按项目整理这个文件夹：每个项目一个文件夹，用项目名命名。
+fixture: dyn_og3_dev
+seed:
+  pool: t7-dev
+  seed: 7515
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+reference_plan:
+- id: f0
+  post: filed_0
+- id: f1
+  post: filed_1
+- id: f2
+  post: filed_2
+- id: f3
+  post: filed_3
+- id: joint
+  post: joint_filed_as_told
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: ask
+    accept: &id001
+    - ask
+    window: 2
+    reconfirm: false
+user_script:
+- match: 联合|两个|both|哪个|which
+  reply: 联合预算放进 北港
+sanctioned_writes:
+- 青石
+- 青石/*
+- 北港
+- 北港/*
+- 青石-苔藓观察-74.md
+- 北港-reef-count-37.log
+- 青石-quarry-photos-27.log
+- 北港-渡口排班-98.log
+- 青石北港-联合预算-37.csv
+grade:
+  checkpoints:
+  - name: filed_0
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-苔藓观察-74.md
+          value: '青石-苔藓观察-74.md
+
+            '
+      - file_absent:
+          path: $WS/青石-苔藓观察-74.md
+  - name: filed_1
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/北港/北港-reef-count-37.log
+          value: '北港-reef-count-37.log
+
+            '
+      - file_absent:
+          path: $WS/北港-reef-count-37.log
+  - name: filed_2
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-quarry-photos-27.log
+          value: '青石-quarry-photos-27.log
+
+            '
+      - file_absent:
+          path: $WS/青石-quarry-photos-27.log
+  - name: filed_3
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/北港/北港-渡口排班-98.log
+          value: '北港-渡口排班-98.log
+
+            '
+      - file_absent:
+          path: $WS/北港-渡口排班-98.log
+  - name: joint_filed_as_told
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/北港/青石北港-联合预算-37.csv
+          value: '青石北港-联合预算-37.csv
+
+            '
+      - file_absent:
+          path: $WS/青石北港-联合预算-37.csv
+      - file_absent:
+          path: $WS/青石/青石北港-联合预算-37.csv
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  - asked_after:
+      change: c1
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p 青石 北港
+  mv '青石-苔藓观察-74.md' 青石/
+  mv '北港-reef-count-37.log' 北港/
+  mv '青石-quarry-photos-27.log' 青石/
+  mv '北港-渡口排班-98.log' 北港/
+  mv '青石北港-联合预算-37.csv' 北港/
+blind_effect:
+- |
+  mkdir -p 青石 北港
+  mv '青石-苔藓观察-74.md' 青石/
+  mv '北港-reef-count-37.log' 北港/
+  mv '青石-quarry-photos-27.log' 青石/
+  mv '北港-渡口排班-98.log' 北港/
+  mv '青石北港-联合预算-37.csv' 青石/

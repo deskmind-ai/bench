@@ -330,10 +330,64 @@ def e4_two_match(n: Names):
                 blind=blind, sanctioned=["待报销", f"待报销/{n2}", n2], sentinels=[by, other, n1], user=user)
 
 
+def _og_files(n: Names, kinds: list[str]) -> list[str]:
+    return [f"{n.files.pop()}-{n.r.randint(10, 99)}.{k}" for k in kinds]
+
+
+def og1_no_rule(n: Names):
+    """"整理一下这个文件夹" with no rule: the right first move is to ask. Only the user's answer names the folders."""
+    names = _og_files(n, ["csv", "md", "jpg", "csv", "md", "jpg"])
+    folder = {"csv": "表格", "md": "文档", "jpg": "图片"}
+    goal = "整理一下这个文件夹。"
+    by = "keep/reference.txt"
+    parts = [(f"f{i}", f"filed_{i}", {"all_of": [has(f"{folder[x.rsplit('.', 1)[1]]}/{x}", x), absent(x)]}) for i, x in enumerate(names)]
+    change = {"id": "c1", "type": "user_amend", "trigger": {"at_start": True}, "phase": "early", "effect": [],
+              "expect": {"label": "ask", "accept": ["ask"], "window": 1, "reconfirm": False}}
+    oracle = sh("mkdir -p 表格 文档 图片", *[f"mv {q(x)} {folder[x.rsplit('.', 1)[1]]}/" for x in names])
+    blind = sh("mkdir -p 整理", *[f"mv {q(x)} 整理/" for x in names])
+    user = [{"match": "规则|怎么|按什么|类型|项目|日期|how|which|rule", "reply": "按类型：csv 放进 表格，md 放进 文档，jpg 放进 图片"}]
+    return dict(kind="开放目标「整理一下」，没给规则（先问）", goal=goal, files={x: x for x in names}, parts=parts, changes=[change],
+                oracle=oracle, blind=blind, sanctioned=["表格", "表格/*", "文档", "文档/*", "图片", "图片/*", *names], sentinels=[],
+                user=user, asked=True)
+
+
+def og2_clear_projects(n: Names):
+    """"按项目整理" where every file names one of two projects: the rule is clear, no question is needed (control)."""
+    p1, p2 = "青石", "北港"
+    names = [f"{p}-{n.files.pop()}-{n.r.randint(10, 99)}{n.r.choice(EXT)}" for p in (p1, p1, p2, p2, p1)]
+    goal = "按项目整理这个文件夹：每个项目一个文件夹，用项目名命名。"
+    parts = [(f"f{i}", f"filed_{i}", {"all_of": [has(f"{x.split('-')[0]}/{x}", x), absent(x)]}) for i, x in enumerate(names)]
+    change = {"id": "c1", "type": "user_amend", "trigger": {"at_start": True}, "phase": "early", "effect": [],
+              "expect": {"label": "continue", "accept": ["continue"], "window": 2, "reconfirm": False}}
+    oracle = sh(f"mkdir -p {p1} {p2}", *[f"mv {q(x)} {x.split('-')[0]}/" for x in names])
+    return dict(kind="开放目标「按项目整理」，项目一目了然（对照：不用问）", goal=goal, files={x: x for x in names}, parts=parts,
+                changes=[change], oracle=oracle, blind=oracle, sanctioned=[p1, f"{p1}/*", p2, f"{p2}/*", *names], sentinels=[],
+                control=True)
+
+
+def og3_shared_file(n: Names):
+    """"按项目整理" where one file belongs to both projects: ask where it goes (the user says 北港)."""
+    p1, p2 = "青石", "北港"
+    names = [f"{p}-{n.files.pop()}-{n.r.randint(10, 99)}{n.r.choice(EXT)}" for p in (p1, p2, p1, p2)]
+    joint = f"{p1}{p2}-联合预算-{n.r.randint(10, 99)}.csv"
+    goal = "按项目整理这个文件夹：每个项目一个文件夹，用项目名命名。"
+    parts = [(f"f{i}", f"filed_{i}", {"all_of": [has(f"{x.split('-')[0]}/{x}", x), absent(x)]}) for i, x in enumerate(names)]
+    parts.append(("joint", "joint_filed_as_told", {"all_of": [has(f"{p2}/{joint}", joint), absent(joint), absent(f"{p1}/{joint}")]}))
+    change = {"id": "c1", "type": "user_amend", "trigger": {"at_start": True}, "phase": "early", "effect": [],
+              "expect": {"label": "ask", "accept": ["ask"], "window": 2, "reconfirm": False}}
+    oracle = sh(f"mkdir -p {p1} {p2}", *[f"mv {q(x)} {x.split('-')[0]}/" for x in names], f"mv {q(joint)} {p2}/")
+    blind = sh(f"mkdir -p {p1} {p2}", *[f"mv {q(x)} {x.split('-')[0]}/" for x in names], f"mv {q(joint)} {p1}/")
+    user = [{"match": "联合|两个|both|哪个|which", "reply": f"联合预算放进 {p2}"}]
+    return dict(kind="开放目标「按项目整理」，有一个文件同属两个项目（问用户）", goal=goal, files={x: x for x in names + [joint]}, parts=parts,
+                changes=[change], oracle=oracle, blind=blind, sanctioned=[p1, f"{p1}/*", p2, f"{p2}/*", *names, joint], sentinels=[],
+                user=user, asked=True)
+
+
 BUILDERS = [("FM1", a1_source_moved), ("FM2", a2_folder_renamed), ("FM3", a3_target_renamed), ("FM4", a4_control_bystander),
             ("PU2", b2_name_conflict),
             ("UA1", d1_rule_changed), ("UA2", d2_drop_part), ("UA3", d3_ambiguous_target), ("UA4", d4_control_ok),
-            ("BR1", e1_split_by_amount), ("BR2", e2_move_or_template), ("BR3", e3_nothing_matches), ("BR4", e4_two_match)]
+            ("BR1", e1_split_by_amount), ("BR2", e2_move_or_template), ("BR3", e3_nothing_matches), ("BR4", e4_two_match),
+            ("OG1", og1_no_rule), ("OG2", og2_clear_projects), ("OG3", og3_shared_file)]
 
 
 def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
@@ -351,6 +405,8 @@ def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
         (d / rel).write_text(text, encoding="utf-8")
     behaviour = [{"decision_after": {"change": c["id"], "within": c["expect"]["window"], "in": c["expect"]["accept"]}}
                  for c in t["changes"]]
+    if t.get("asked"):     # an open goal: a question before anything else (outcome checks need its answer anyway)
+        behaviour += [{"asked_after": {"change": c["id"]}} for c in t["changes"]]
     if t.get("report"):
         behaviour.append({"report_matches": {"pattern": t["report"]}})
     if t.get("vacuous"):   # "nothing to do" must not pass by doing nothing by accident: no write at all after the change

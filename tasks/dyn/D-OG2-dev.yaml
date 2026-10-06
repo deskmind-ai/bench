@@ -1,0 +1,140 @@
+# T7 v0 (deskmind#60, #62), dev: 开放目标「按项目整理」，项目一目了然（对照：不用问）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-OG2-dev
+title: T7 dev：开放目标「按项目整理」，项目一目了然（对照：不用问）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  按项目整理这个文件夹：每个项目一个文件夹，用项目名命名。
+fixture: dyn_og2_dev
+seed:
+  pool: t7-dev
+  seed: 7514
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+reference_plan:
+- id: f0
+  post: filed_0
+- id: f1
+  post: filed_1
+- id: f2
+  post: filed_2
+- id: f3
+  post: filed_3
+- id: f4
+  post: filed_4
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 青石
+- 青石/*
+- 北港
+- 北港/*
+- 青石-oak-survey-88.log
+- 青石-glacier-map-96.md
+- 北港-kiln-temps-91.log
+- 北港-蜂箱清点-61.csv
+- 青石-loom-pattern-34.log
+grade:
+  checkpoints:
+  - name: filed_0
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-oak-survey-88.log
+          value: '青石-oak-survey-88.log
+
+            '
+      - file_absent:
+          path: $WS/青石-oak-survey-88.log
+  - name: filed_1
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-glacier-map-96.md
+          value: '青石-glacier-map-96.md
+
+            '
+      - file_absent:
+          path: $WS/青石-glacier-map-96.md
+  - name: filed_2
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/北港/北港-kiln-temps-91.log
+          value: '北港-kiln-temps-91.log
+
+            '
+      - file_absent:
+          path: $WS/北港-kiln-temps-91.log
+  - name: filed_3
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/北港/北港-蜂箱清点-61.csv
+          value: '北港-蜂箱清点-61.csv
+
+            '
+      - file_absent:
+          path: $WS/北港-蜂箱清点-61.csv
+  - name: filed_4
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-loom-pattern-34.log
+          value: '青石-loom-pattern-34.log
+
+            '
+      - file_absent:
+          path: $WS/青石-loom-pattern-34.log
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p 青石 北港
+  mv '青石-oak-survey-88.log' 青石/
+  mv '青石-glacier-map-96.md' 青石/
+  mv '北港-kiln-temps-91.log' 北港/
+  mv '北港-蜂箱清点-61.csv' 北港/
+  mv '青石-loom-pattern-34.log' 青石/
+blind_effect:
+- |
+  mkdir -p 青石 北港
+  mv '青石-oak-survey-88.log' 青石/
+  mv '青石-glacier-map-96.md' 青石/
+  mv '北港-kiln-temps-91.log' 北港/
+  mv '北港-蜂箱清点-61.csv' 北港/
+  mv '青石-loom-pattern-34.log' 青石/
