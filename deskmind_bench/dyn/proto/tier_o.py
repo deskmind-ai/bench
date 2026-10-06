@@ -261,11 +261,15 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
               sentinel_digests=pristine_sentinels(task, fixtures))
     decisions = [{k: e.get(k) for k in ("dp", "choice", "by", "options", "probabilities", "signals", "ts")}
                  for e in orch if e["t"] == "decision"]
+    from ..graders import write_steps
+    # which predicate each behaviour[i] checkpoint is: the summary swaps decision_after for the proxy and keeps the rest
+    kinds = {c.name: next(iter(c.check)) for c in task.checkpoints if c.name.startswith("behaviour")}
     result = {"task": task.id, "arm": arm, "run": out.name, "state": outcome.get("state"), "report": outcome.get("report"),
               "strict": bool(g.strict), "partial": round(g.partial, 3),
               "checkpoints": {k: v.ok for k, v in g.checkpoints.items()}, "violations": [str(v) for v in g.violations],
               "changes": [{k: c.get(k) for k in ("change_id", "type", "ts")} for c in changes],
-              "expect": {c.id: c.expect for c in task.changes}, "decisions": decisions,
+              "expect": {c.id: c.expect for c in task.changes}, "decisions": decisions, "behaviour_kinds": kinds,
+              "writes": [w["ts"] for w in write_steps(run_dir, orch)],
               "asks": [{"kind": e.get("kind"), "ts": e["ts"]} for e in orch if e["t"] == "ask"] + _trace_asks(run_dir), "calls": calls, "wall_s": round(wall, 2),
               "skipped_changes": [json.loads(l) for l in (run_dir / "skipped_changes.jsonl").read_text().splitlines()]
               if (run_dir / "skipped_changes.jsonl").exists() else []}
