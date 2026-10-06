@@ -45,6 +45,11 @@ def by_code(ctx: Context) -> str | None:
     return "continue" if ctx.outcome == "met" and not ctx.signals else None
 
 
+def by_tier(reply: dict) -> str:
+    """Which local model answered, from the Brain's routing record."""
+    return {"fast": "local-0.8b", "strong": "local-4b"}.get((reply.get("routing") or {}).get("by"), "local-4b")
+
+
 class SystemOneDecider:
     """The local Brain answers the decision as one choice question over /v1/systemone. This question is new to the
     model (never trained); T7 measures whether it can answer it at all."""
@@ -75,12 +80,10 @@ class SystemOneDecider:
         if probs:
             choice = max(opts, key=lambda o: probs.get(o, 0.0))   # ties: first in the offered order
         elif ans.get("choice") in opts:
-            choice, probs = ans["choice"], {}
+            return ans["choice"], None, by_tier(reply)
         else:   # no usable answer: never fall back to the first option, which is "continue"
             raise ValueError(f"the decider's reply has neither probabilities nor an offered choice: {ans!r}")
-        tier = (reply.get("routing") or {}).get("by")
-        by = {"fast": "local-0.8b", "strong": "local-4b"}.get(tier, "local-4b")
-        return choice, {o: round(float(probs.get(o, 0.0)), 4) for o in opts}, by
+        return choice, {o: round(float(probs.get(o, 0.0)), 4) for o in opts}, by_tier(reply)
 
 
 class ScriptedDecider:

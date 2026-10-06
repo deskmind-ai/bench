@@ -232,3 +232,62 @@ class Decider(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Runner(unittest.TestCase):
+    """The bench runner fires a dyn task's changes at the orchestrator's hook points (proto/runner.py)."""
+
+    def task(self, changes, checkpoints=()):
+        from types import SimpleNamespace
+        from deskmind_bench.task import Change
+        return SimpleNamespace(
+            app="com.apple.finder", reset_apps=[], vars={}, checkpoints=list(checkpoints),
+            reference_plan=[{"id": "part1"}, {"id": "part2"}, {"id": "part3"}],
+            changes=[Change(id=c["id"], type=c["type"], trigger=c["trigger"], effect=c["effect"]) for c in changes])
+
+    def go(self, task, ws, decide, fn=None):
+        from deskmind_bench.dyn.proto.runner import ChangeHooks
+        run_dir = Path(tempfile.mkdtemp())
+        hooks = ChangeHooks(task, ws, run_dir, "t1")
+        fn = fn or executor()
+        out = run(GOAL, ws, planner=TemplatePlanner(), decider=ScriptedDecider(decide), executor=FnExecutor(fn),
+                  user=ScriptedUser(queue=run_dir / "user_queue.jsonl"), log=EventLog(run_dir / "orchestrator.jsonl", "t1"),
+                  hooks=hooks)
+        hooks.close()
+        return out, read(run_dir / "orchestrator.jsonl"), read(run_dir / "changes.jsonl"), fn
+
+    def test_before_subgoal_fires_before_that_part_runs(self):
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        t = self.task([{"id": "c1", "type": "file_moved", "trigger": {"before_subgoal": "part2"},
+                        "effect": [{"fs": {"op": "mv", "src": "$WS/todo-94.txt", "dst": "$WS/old/todo-94.txt"}}]}])
+        seen = []
+        _, ev, ch, _ = self.go(t, ws, lambda ctx: seen.append((ctx.outcome, ctx.signals)) or "stop")
+        self.assertEqual([c["change_id"] for c in ch if c["t"] == "change_fired"], ["c1"])
+        self.assertEqual(seen[0][0], "unmet", "part 2 ran after its file was moved")
+        self.assertIn("file_missing", seen[0][1])
+
+    def test_on_ask_user_says_reaches_the_orchestrator_as_an_interjection(self):
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        t = self.task([{"id": "c2", "type": "user_amend", "trigger": {"on_ask": {"kind": "plan_confirm"}},
+                        "effect": [{"user_says": "第三件不用做了"}]}])
+        decide = lambda ctx: "stop" if "user_interjected" in ctx.signals else "continue"
+        out, ev, ch, _ = self.go(t, ws, decide)
+        self.assertIn({"t": "user_msg", "kind": "interject", "text": "第三件不用做了"},
+                      [{k: e[k] for k in ("t", "kind", "text")} for e in ev if e["t"] == "user_msg"])
+        self.assertEqual(out["state"], "stopped")
+
+    def test_at_checkpoint_fires_after_the_part_that_passes_it(self):
+        from deskmind_bench.task import Checkpoint
+        ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
+        cp = Checkpoint(name="folder_made", check={"file_exists": {"path": "$WS/资料"}})
+        t = self.task([{"id": "c3", "type": "file_moved", "trigger": {"at_checkpoint": "folder_made"},
+                        "effect": [{"fs": {"op": "rm", "path": "$WS/todo-94.txt"}}]}], [cp])
+
+        def do(sg, ws, max_actions):
+            if "资料" in sg.clause:
+                (ws / "资料").mkdir(exist_ok=True)
+            return executor()(sg, ws, max_actions)
+        seen = []
+        _, _, ch, _ = self.go(t, ws, lambda ctx: seen.append(ctx.signals) or "stop", do)
+        self.assertEqual([c["change_id"] for c in ch if c["t"] == "change_fired"], ["c3"])
+        self.assertIn("file_missing", seen[0], "the change fired before the first decision")
