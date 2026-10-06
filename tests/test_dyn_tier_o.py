@@ -79,3 +79,24 @@ class Planned(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Robustness(unittest.TestCase):
+    def test_a_crash_still_writes_an_errored_result(self):
+        d, task = setup()
+
+        def boom(messages):
+            raise RuntimeError("backend down")
+        with self.assertRaises(RuntimeError):
+            run_one(task, "a", d / "out", fixtures=d / "fixtures", local_chat=boom)
+        r = json.loads((d / "out" / "result.json").read_text())
+        self.assertEqual((r["state"], r["strict"]), ("errored", False))
+        self.assertIn("backend down", r["error"])
+
+    def test_the_stepwise_arm_can_copy_and_its_questions_are_counted(self):
+        d, task = setup()
+        chat = replies('{"ask": "放哪？"}', '{"op": "mkdir", "path": "库房"}', '{"op": "copy", "from": "a.txt", "to": "库房/a-副本.txt"}',
+                       '{"done": "复制了"}')
+        r = run_one(task, "a", d / "out", fixtures=d / "fixtures", local_chat=chat)
+        self.assertTrue((d / "out" / "ws" / "库房" / "a-副本.txt").exists())
+        self.assertEqual([a["kind"] for a in r["asks"]], ["clarify"])

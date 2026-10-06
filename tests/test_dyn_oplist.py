@@ -49,7 +49,7 @@ class DryRun(unittest.TestCase):
         for bad, why in ((ops({"op": "move", "from": "../x", "to": "y"}), "离开工作目录"),
                          (ops({"op": "move", "from": "a.txt", "to": "b.txt"}), "不能覆盖"),
                          (ops({"op": "move", "from": "nope.txt", "to": "c.txt"}), "不存在"),
-                         (ops({"op": "delete", "path": "a.txt"}), "只能用 mkdir 和 move"),
+                         (ops({"op": "delete", "path": "a.txt"}), "只能用 mkdir、move 和 copy"),
                          (ops({"op": "move", "from": "a.txt", "to": "missing/a.txt"}), "文件夹不存在")):
             with self.assertRaisesRegex(ValueError, why):
                 oplist.dry_run(oplist.parse(bad), ws)

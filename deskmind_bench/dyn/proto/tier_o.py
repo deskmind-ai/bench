@@ -45,9 +45,10 @@ BENCH = Path(__file__).resolve().parents[3]
 
 STEP = """你在一个工作目录里完成用户交给你的文件任务，一次只做一步。你不直接动文件：每一步只回答一个 JSON 对象，由程序检查后执行。
 
-可以回答的四种：
+可以回答的五种：
 {{"op": "mkdir", "path": "相对路径"}}
 {{"op": "move", "from": "相对路径", "to": "相对路径"}}      改名也用 move；"to" 是完整的新路径
+{{"op": "copy", "from": "相对路径", "to": "相对路径"}}      复制一个文件
 {{"done": "一句话汇报做了什么"}}                          任务做完了，或者没有可做的
 {{"ask": "向用户提的一个问题"}}                            缺信息时
 
@@ -175,12 +176,36 @@ class SafeHooks(ChangeHooks):
                 f.write(json.dumps({"change_id": change.id, "why": f"{type(exc).__name__}: {exc}"[:300]}, ensure_ascii=False) + "\n")
 
 
+def _trace_asks(run_dir: Path) -> list[dict]:
+    """The harness-shaped question turns (the stepwise arm's): a model asking is a clarify, as graders.asks counts it."""
+    t = run_dir / "trace.jsonl"
+    if not t.exists():
+        return []
+    rows = [json.loads(l) for l in t.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [{"kind": "clarify", "ts": r.get("t_reply") or r.get("t_decide_end") or 0.0} for r in rows if r.get("kind") == "ask_user"]
+
+
 def _slots(task) -> list[dict]:
     return [{"slot": f"s{i}", "match": u.match, "reply": u.reply, **({"approve": u.approve} if u.approve is not None else {})}
             for i, u in enumerate(task.user_script)]
 
 
-def run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://127.0.0.1:8899",
+def run_one(task_path: Path, arm: str, out: Path, **kw) -> dict:
+    """One run; a crash anywhere still leaves <out>/result.json, with state "errored" and the exception."""
+    try:
+        return _run_one(task_path, arm, out, **kw)
+    except Exception as exc:  # noqa: BLE001 -- recorded, then re-raised for the caller's log
+        out.mkdir(parents=True, exist_ok=True)
+        task = load_task(task_path)
+        result = {"task": task.id, "arm": arm, "run": out.name, "state": "errored", "report": "",
+                  "error": f"{type(exc).__name__}: {exc}"[:500], "strict": False, "partial": 0.0, "checkpoints": {},
+                  "violations": [], "changes": [], "expect": {c.id: c.expect for c in task.changes}, "decisions": [],
+                  "asks": [], "calls": {}, "wall_s": 0.0, "skipped_changes": []}
+        (out / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=1))
+        raise
+
+
+def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://127.0.0.1:8899",
             systemone_url: str = "http://127.0.0.1:8796", frontier_model: str | None = None,
             frontier_url: str = "https://openrouter.ai/api/v1", fixtures: Path | None = None,
             local_chat=None, text=None, decider=None) -> dict:
@@ -241,7 +266,7 @@ def run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://127
               "checkpoints": {k: v.ok for k, v in g.checkpoints.items()}, "violations": [str(v) for v in g.violations],
               "changes": [{k: c.get(k) for k in ("change_id", "type", "ts")} for c in changes],
               "expect": {c.id: c.expect for c in task.changes}, "decisions": decisions,
-              "asks": [e.get("kind") for e in orch if e["t"] == "ask"], "calls": calls, "wall_s": round(wall, 2),
+              "asks": [{"kind": e.get("kind"), "ts": e["ts"]} for e in orch if e["t"] == "ask"] + _trace_asks(run_dir), "calls": calls, "wall_s": round(wall, 2),
               "skipped_changes": [json.loads(l) for l in (run_dir / "skipped_changes.jsonl").read_text().splitlines()]
               if (run_dir / "skipped_changes.jsonl").exists() else []}
     (out / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=1))

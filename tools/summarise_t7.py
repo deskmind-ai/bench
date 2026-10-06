@@ -7,6 +7,9 @@ from pathlib import Path
 
 root = Path(sys.argv[1])
 rows = [json.loads(p.read_text()) for p in sorted(root.glob("*/*/result.json"))]
+errored = [r for r in rows if r["state"] == "errored"]
+for r in rows:   # older result files list asks as kinds only
+    r["asks"] = [a if isinstance(a, dict) else {"kind": a, "ts": float("inf")} for a in r.get("asks", [])]
 by_arm = defaultdict(list)
 for r in rows:
     by_arm[r["arm"]].append(r)
@@ -22,10 +25,13 @@ def reaction(r):
     if not r["changes"]:
         return None, exp
     ts = r["changes"][0]["ts"]
+    if r["arm"] in ("a", "b"):   # amendment 6: no decision points of their own (b's are code's "continue"): the proxy
+        asked = any(a["kind"] == "clarify" and a["ts"] >= ts for a in r["asks"])
+        return ("ask" if asked else "stop" if r["state"] == "stopped" else "continue"), exp
     after = [d for d in r["decisions"] if d["ts"] >= ts][: exp.get("window", 1)]
     first = next((d["choice"] for d in after if d["choice"] != "continue"), "continue" if after else None)
-    if first is None:   # no decision event after the change (arm a, or the run ended): proxy labels
-        first = "ask" if "clarify" in r["asks"] else ("stop" if r["state"] in ("stopped",) else "continue")
+    if first is None:   # the run ended before a decision point after the change
+        first = "stop" if r["state"] == "stopped" else "continue"
     return first, exp
 
 
@@ -53,7 +59,7 @@ def strict_amended(r):
     return r["strict"]
 
 
-print(f"{len(rows)} runs under {root}")
+print(f"{len(rows)} runs under {root}; errored {len(errored)}: {[(r['task'], r['arm']) for r in errored][:10]}")
 for arm in sorted(by_arm):
     rs = by_arm[arm]
     n = len(rs)
