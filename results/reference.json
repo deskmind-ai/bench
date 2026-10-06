@@ -4,6 +4,96 @@
   "metric": "strict pass (every checkpoint passes, no guard broken, no forbidden side effect)",
   "configs": [
     {
+      "suite_version": "diag-v27",
+      "suite_hash": "5eec62a0c662",
+      "label": "router-g18b-q8",
+      "system": "DeskMind Brain two-tier router (0.8B → 4B), checkpoint g18b, 8-bit, routing threshold 0.96",
+      "runs_on": "local, Apple M4 Pro, through a development build of the DeskMind app for 0.5",
+      "projection": "on",
+      "repeats_per_task": 3,
+      "runs": 39,
+      "scored": 39,
+      "env_errors": 0,
+      "passed": 39,
+      "strict": 1.0,
+      "partial": 1.0,
+      "false_done": 0,
+      "no_progress_loops": 0,
+      "step_latency_s": {
+        "p50": 2.28,
+        "p95": 5.62
+      },
+      "rounds": 1,
+      "per_task": {
+        "G01-finder-sort": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G02-textedit-edit": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G03-safari-extract": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G04-chinese-exact": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G05-ambiguity-ask": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G06-wrong-target": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G07-finder-newfolder": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G08-finder-move-one": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G09-finder-navigate-down": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G10-finder-navigate-up": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G11-long-scroll": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G12-cancel-midway": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        },
+        "G13-roundtrip": {
+          "passed": 3,
+          "scored": 3,
+          "env_errors": 0
+        }
+      },
+      "note": "Run through a development build of the DeskMind app for 0.5 (deskmind f334e96: public DeskMind Hands 89be730, bench f8e4702, brain 9b5fe73, eyes 86f680e; the check before DONE on, optional notes off). G04 passed 3/3 in 4 steps each (20 on v26): with the document already written and saved, the planner still chose to replace \"1,240\" with the whole dictated text, which v26's harness spliced into the document; v27 writes it as a rewrite of the field, the field already holds it, the write is refused as nothing changed, and the planner says DONE (hands#9). 160 steps in all against 211 on v26; the lower step p95 comes mostly from G04's long rewrites being gone, not from faster models."
+    },
+    {
       "suite_version": "diag-v26",
       "suite_hash": "5eec62a0c662",
       "label": "router-g18b-q8",
@@ -91,7 +181,7 @@
           "env_errors": 0
         }
       },
-      "note": "DeskMind app 0.4.0 (release, 2026-10-05); public DeskMind Hands 11368c6, done check on, optional notes off; G04 passed 2/3: the planner alternates between the correct line and a corrupted one and never says DONE, so the result depends on which write is last when the 20-action budget runs out (run 1 ended on the corrupted text)"
+      "note": "DeskMind app 0.4.0 (release, 2026-10-05); public DeskMind Hands 11368c6, done check on, optional notes off; G04 passed 2/3: the planner alternates between the correct line and a corrupted one and never says DONE, so the result depends on which write is last when the 20-action budget runs out (run 1 ended on the corrupted text) The cause was found on v27: the harness spliced a REPLACE of \"1,240\" with the whole text into the document (hands#9)."
     },
     {
       "suite_version": "diag-v25",
