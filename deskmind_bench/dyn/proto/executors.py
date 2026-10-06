@@ -77,3 +77,6 @@ class FnExecutor:
 
     def run(self, sg: Subgoal, ws: Path, max_actions: int, user, log, constraints: str = "") -> Result:
         return self.fn(sg, ws, max_actions)
+
+
+from .oplist import OpListExecutor  # noqa: E402,F401  -- Tier O's operation-list executor (#62)
