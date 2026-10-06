@@ -17,6 +17,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from . import dyn  # noqa: F401  -- registers the dynamic-task checks
 from .graders.primitives import GradeContext
 from .graders.score import grade
 from .scoring import pristine_sentinels
@@ -36,6 +37,10 @@ def _unpack(task: Task, fixtures_dir: Path, into: Path) -> Path:
     return ws
 
 
+def _fixture(task: Task, fixtures_dir: Path) -> str | None:
+    return str(fixtures_dir / task.fixture) if task.fixture else None
+
+
 def verify_task(task: Task, fixtures_dir: Path) -> list[str]:
     problems: list[str] = []
     sentinels = pristine_sentinels(task, fixtures_dir)
@@ -50,7 +55,9 @@ def verify_task(task: Task, fixtures_dir: Path) -> list[str]:
                     break
             else:
                 g = grade(task, GradeContext(workspace=ws, vars=task.vars,
-                                             run={"state": "completed", "metrics": {}}), sentinel_digests=sentinels)
+                                             run={"state": "completed", "metrics": {}, "dir": d,
+                                                  "fixture_dir": _fixture(task, fixtures_dir)}),
+                          sentinel_digests=sentinels)
                 outcome = {c.name for c in task.checkpoints if not c.process}
                 bad = [k for k, v in g.checkpoints.items() if not v.ok and k in outcome]
                 if g.error or bad or g.violations:
@@ -61,7 +68,8 @@ def verify_task(task: Task, fixtures_dir: Path) -> list[str]:
     with tempfile.TemporaryDirectory(prefix="deskmind-bench-") as d:
         ws = _unpack(task, fixtures_dir, Path(d))
         g = grade(task, GradeContext(workspace=ws, vars=task.vars,
-                                     run={"state": "completed", "metrics": dict(NULL_METRICS)}),
+                                     run={"state": "completed", "metrics": dict(NULL_METRICS), "dir": d,
+                                          "fixture_dir": _fixture(task, fixtures_dir)}),
                   sentinel_digests=sentinels)
         if g.strict:
             problems.append("doing nothing scores strict -- the grader is vacuous")
