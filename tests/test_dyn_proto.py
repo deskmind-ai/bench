@@ -279,7 +279,7 @@ class Runner(unittest.TestCase):
     def test_at_checkpoint_fires_after_the_part_that_passes_it(self):
         from deskmind_bench.task import Checkpoint
         ws = files_ws("draft-21.csv", "todo-94.txt", "backup/记录-30.txt")
-        cp = Checkpoint(name="folder_made", check={"file_exists": {"path": "资料"}})
+        cp = Checkpoint(name="folder_made", check={"file_exists": {"path": "$WS/资料"}})
         t = self.task([{"id": "c3", "type": "file_moved", "trigger": {"at_checkpoint": "folder_made"},
                         "effect": [{"fs": {"op": "rm", "path": "$WS/todo-94.txt"}}]}], [cp])
 
