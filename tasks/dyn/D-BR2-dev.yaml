@@ -1,0 +1,82 @@
+# T7 v0 (deskmind#60, #62), dev: 有就移、没有就复制模板（分支在计划里，对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-BR2-dev
+title: T7 dev：有就移、没有就复制模板（分支在计划里，对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  新建文件夹 待处理。如果有 季报-终稿.md，把它移进 待处理；如果没有，就把 模板/季报模板.md 复制一份到 待处理，命名为 季报-终稿.md。其他文件不要动。
+fixture: dyn_br2_dev
+seed:
+  pool: t7-dev
+  seed: 7510
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/reef-count-37.log
+- $WS/模板/季报模板.md
+reference_plan:
+- id: part1
+  post: report_in_place
+changes:
+- id: c1
+  type: branch_on_result
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 待处理
+- 待处理/*
+grade:
+  checkpoints:
+  - name: report_in_place
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/待处理/季报-终稿.md
+          value: '季报模板.md
+
+            '
+      - file_text_equals:
+          path: $WS/模板/季报模板.md
+          value: '季报模板.md
+
+            '
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p '待处理'
+  cp '模板/季报模板.md' '待处理/季报-终稿.md'
+blind_effect:
+- |
+  mkdir -p '待处理'
+  cp '模板/季报模板.md' '待处理/季报-终稿.md'

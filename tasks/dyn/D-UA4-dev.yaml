@@ -1,0 +1,112 @@
+# T7 v0 (deskmind#60, #62), dev: 「好的，你继续」（对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-UA4-dev
+title: T7 dev：「好的，你继续」（对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  先新建文件夹 样本，把 星图草案-17.txt 放进去；然后把 orchard-yield-57.txt 改名为 已核-orchard-yield-57.txt；最后把 reef-count-82.txt 也放进 样本。其他文件不要动。
+fixture: dyn_ua4_dev
+seed:
+  pool: t7-dev
+  seed: 7508
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/航线图-64.md
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+  post: part3_move
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    before_subgoal: part3
+  phase: late
+  effect:
+  - user_says: 好的，你继续
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 1
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 样本
+- 样本/星图草案-17.txt
+- 星图草案-17.txt
+- orchard-yield-57.txt
+- 已核-orchard-yield-57.txt
+- reef-count-82.txt
+- 样本/reef-count-82.txt
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/样本/星图草案-17.txt
+          value: '星图草案-17.txt
+
+            '
+      - file_absent:
+          path: $WS/星图草案-17.txt
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-orchard-yield-57.txt
+          value: 'orchard-yield-57.txt
+
+            '
+      - file_absent:
+          path: $WS/orchard-yield-57.txt
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/样本/reef-count-82.txt
+          value: 'reef-count-82.txt
+
+            '
+      - file_absent:
+          path: $WS/reef-count-82.txt
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p '样本'
+  mv '星图草案-17.txt' '样本/'
+  mv 'orchard-yield-57.txt' '已核-orchard-yield-57.txt'
+  mv 'reef-count-82.txt' '样本/'
+blind_effect:
+- |
+  mkdir -p '样本'
+  mv '星图草案-17.txt' '样本/'
+  mv 'orchard-yield-57.txt' '已核-orchard-yield-57.txt'
+  mv 'reef-count-82.txt' '样本/'

@@ -1,0 +1,132 @@
+# T7 v0 (deskmind#60, #62), dev: 确认计划时改了规则（重新规划并再次确认）. Names from T7's own pool, apart from the training fixtures and P03-P22. Dev twin: definitions and prompts may be tuned on it; not reported.
+id: D-UA1-dev
+title: T7 dev：确认计划时改了规则（重新规划并再次确认）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-dev
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  把这 4 个文件按类型分开放：csv 放进 表格，md 放进 文档。其他文件不要动。
+fixture: dyn_ua1_dev
+seed:
+  pool: t7-dev
+  seed: 7505
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/harbor-tides-37.txt
+reference_plan:
+- id: month0
+  post: by_month_0
+- id: month1
+  post: by_month_1
+- id: month2
+  post: by_month_2
+- id: month3
+  post: by_month_3
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    on_ask:
+      kind: plan_confirm
+  phase: early
+  effect:
+  - user_says: 还是按月份放吧：文件名里是哪个月就放进哪个月的文件夹，比如 2026-08
+  expect:
+    label: replan
+    accept: &id001
+    - replan
+    window: 1
+    reconfirm: true
+user_script: []
+sanctioned_writes:
+- 2026-08
+- 2026-08/*
+- 2026-09
+- 2026-09/*
+- kiln-temps-73_2026-08.csv
+- reef-count-97_2026-09.md
+- 窑温曲线-68_2026-09.csv
+- 苔藓观察-72_2026-08.md
+grade:
+  checkpoints:
+  - name: by_month_0
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/2026-08/kiln-temps-73_2026-08.csv
+          value: 'kiln-temps-73_2026-08.csv
+
+            '
+      - file_absent:
+          path: $WS/kiln-temps-73_2026-08.csv
+  - name: by_month_1
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/2026-09/reef-count-97_2026-09.md
+          value: 'reef-count-97_2026-09.md
+
+            '
+      - file_absent:
+          path: $WS/reef-count-97_2026-09.md
+  - name: by_month_2
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/2026-09/窑温曲线-68_2026-09.csv
+          value: '窑温曲线-68_2026-09.csv
+
+            '
+      - file_absent:
+          path: $WS/窑温曲线-68_2026-09.csv
+  - name: by_month_3
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/2026-08/苔藓观察-72_2026-08.md
+          value: '苔藓观察-72_2026-08.md
+
+            '
+      - file_absent:
+          path: $WS/苔藓观察-72_2026-08.md
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  - file_exists:
+      path: $WS/表格
+  - file_exists:
+      path: $WS/文档
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p 2026-08 2026-09
+  mv 'kiln-temps-73_2026-08.csv' '2026-08/'
+  mv 'reef-count-97_2026-09.md' '2026-09/'
+  mv '窑温曲线-68_2026-09.csv' '2026-09/'
+  mv '苔藓观察-72_2026-08.md' '2026-08/'
+blind_effect:
+- |
+  mkdir -p 表格 文档
+  mv 'kiln-temps-73_2026-08.csv' '表格/'
+  mv 'reef-count-97_2026-09.md' '文档/'
+  mv '窑温曲线-68_2026-09.csv' '表格/'
+  mv '苔藓观察-72_2026-08.md' '文档/'

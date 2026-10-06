@@ -1,0 +1,108 @@
+# T7 v0 (deskmind#60, #62), test: 「第三件不用做了」（修补）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-UA2-test
+title: T7 test：「第三件不用做了」（修补）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  先新建文件夹 样本，把 harbor-tides-72.csv 放进去；然后把 渡口排班-54.log 改名为 已核-渡口排班-54.log；最后把 oak-survey-32.log 也放进 样本。其他文件不要动。
+fixture: dyn_ua2_test
+seed:
+  pool: t7-test
+  seed: 7106
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/茶园账本-19.md
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    before_subgoal: part3
+  phase: late
+  effect:
+  - user_says: 第三件不用做了，oak-survey-32.log 留在原处
+  expect:
+    label: repair
+    accept: &id001
+    - repair
+    - replan
+    window: 1
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 样本
+- 样本/harbor-tides-72.csv
+- harbor-tides-72.csv
+- 渡口排班-54.log
+- 已核-渡口排班-54.log
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/样本/harbor-tides-72.csv
+          value: 'harbor-tides-72.csv
+
+            '
+      - file_absent:
+          path: $WS/harbor-tides-72.csv
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-渡口排班-54.log
+          value: '渡口排班-54.log
+
+            '
+      - file_absent:
+          path: $WS/渡口排班-54.log
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  guards:
+  - all_of:
+    - file_text_equals:
+        path: $WS/oak-survey-32.log
+        value: 'oak-survey-32.log
+
+          '
+    - file_absent:
+        path: $WS/样本/oak-survey-32.log
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+oracle_effect:
+- |
+  mkdir -p '样本'
+  mv 'harbor-tides-72.csv' '样本/'
+  mv '渡口排班-54.log' '已核-渡口排班-54.log'
+blind_effect:
+- |
+  mkdir -p '样本'
+  mv 'harbor-tides-72.csv' '样本/'
+  mv '渡口排班-54.log' '已核-渡口排班-54.log'
+  mv 'oak-survey-32.log' '样本/'
