@@ -1,0 +1,66 @@
+# One goal, 4 independent Finder jobs (move_up, create_move, suffix, rename); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi4-13). See README.md here.
+id: P16-finder-multi4-13
+title: Finder 一个目标里 4 件事：移到顶层、新建文件夹并移入、加后缀、改名
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  先把 archive 文件夹里的 会议纪要-18.txt 移到工作目录顶层；然后新建文件夹 备份，把 draft-81.md 放进去；再给 draft-26.md 和 agenda-16.txt 的文件名都加上后缀 -done（扩展名之前，例如 draft-26-done.md）；最后把 budget-49.md 改名为 memo-16.md。其他文件和文件夹不要动。
+fixture: proposal_multi_13
+budget:
+  max_actions: 44
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/memo-15.log
+- $WS/log-87.txt
+grade:
+  checkpoints:
+  - name: part1_move_up
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/会议纪要-18.txt
+      - file_absent:
+          path: $WS/archive/会议纪要-18.txt
+  - name: part2_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/备份/draft-81.md
+      - file_absent:
+          path: $WS/draft-81.md
+  - name: part3_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/draft-26-done.md
+      - file_exists:
+          path: $WS/agenda-16-done.txt
+      - file_absent:
+          path: $WS/draft-26.md
+      - file_absent:
+          path: $WS/agenda-16.txt
+  - name: part4_rename
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/memo-16.md
+      - file_absent:
+          path: $WS/budget-49.md
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mv 'archive/会议纪要-18.txt' ./
+- mkdir -p '备份'
+- mv 'draft-81.md' '备份/'
+- mv 'draft-26.md' 'draft-26-done.md'
+- mv 'agenda-16.txt' 'agenda-16-done.txt'
+- mv 'budget-49.md' 'memo-16.md'

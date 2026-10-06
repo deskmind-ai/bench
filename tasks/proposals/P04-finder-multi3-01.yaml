@@ -1,0 +1,58 @@
+# One goal, 3 independent Finder jobs (create_move, suffix, move_up); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi3-01). See README.md here.
+id: P04-finder-multi3-01
+title: Finder 一个目标里 3 件事：新建文件夹并移入、加后缀、移到顶层
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  先新建文件夹 报告，把 summary-24.log 放进去；然后给 plan-50.csv 和 report-21.log 的文件名都加上后缀 -v2（扩展名之前，例如 plan-50-v2.csv）；最后把 docs 文件夹里的 记录-64.txt 移到工作目录顶层。其他文件和文件夹不要动。
+fixture: proposal_multi_01
+budget:
+  max_actions: 36
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/report-84.md
+- $WS/plan-16.txt
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/报告/summary-24.log
+      - file_absent:
+          path: $WS/summary-24.log
+  - name: part2_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/plan-50-v2.csv
+      - file_exists:
+          path: $WS/report-21-v2.log
+      - file_absent:
+          path: $WS/plan-50.csv
+      - file_absent:
+          path: $WS/report-21.log
+  - name: part3_move_up
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/记录-64.txt
+      - file_absent:
+          path: $WS/docs/记录-64.txt
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mkdir -p '报告'
+- mv 'summary-24.log' '报告/'
+- mv 'plan-50.csv' 'plan-50-v2.csv'
+- mv 'report-21.log' 'report-21-v2.log'
+- mv 'docs/记录-64.txt' ./

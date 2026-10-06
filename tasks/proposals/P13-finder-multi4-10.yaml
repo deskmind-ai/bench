@@ -1,0 +1,66 @@
+# One goal, 4 independent Finder jobs (suffix, create_move, rename, move_up); every part is its own checkpoint.
+# From phase-0 experiment 2 of the Skill-architecture design (its id there: X-multi4-10). See README.md here.
+id: P13-finder-multi4-10
+title: Finder 一个目标里 4 件事：加后缀、新建文件夹并移入、改名、移到顶层
+surface: finder
+tags:
+- proposal
+- finder
+- multi-part
+app: com.apple.finder
+goal: |
+  First add the suffix -done to the names of 说明-81.csv and 清单-9.csv (before the extension, e.g. 说明-81-done.csv); then make a folder 合同 and put todo-87.md in it; next rename 记录-35.txt to 周报-74.txt; finally move draft-58.txt out of the drafts folder up to the working directory. Leave every other file and folder alone.
+fixture: proposal_multi_10
+budget:
+  max_actions: 44
+  wall_clock_s: 600
+sentinels:
+- $WS/keep/reference.txt
+- $WS/plan-51.txt
+- $WS/todo-79.md
+grade:
+  checkpoints:
+  - name: part1_suffix
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/说明-81-done.csv
+      - file_exists:
+          path: $WS/清单-9-done.csv
+      - file_absent:
+          path: $WS/说明-81.csv
+      - file_absent:
+          path: $WS/清单-9.csv
+  - name: part2_create_move
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/合同/todo-87.md
+      - file_absent:
+          path: $WS/todo-87.md
+  - name: part3_rename
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/周报-74.txt
+      - file_absent:
+          path: $WS/记录-35.txt
+  - name: part4_move_up
+    check:
+      all_of:
+      - file_exists:
+          path: $WS/draft-58.txt
+      - file_absent:
+          path: $WS/drafts/draft-58.txt
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+oracle_effect:
+- mv '说明-81.csv' '说明-81-done.csv'
+- mv '清单-9.csv' '清单-9-done.csv'
+- mkdir -p '合同'
+- mv 'todo-87.md' '合同/'
+- mv '记录-35.txt' '周报-74.txt'
+- mv 'drafts/draft-58.txt' ./
