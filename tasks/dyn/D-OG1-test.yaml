@@ -134,6 +134,12 @@ grade:
   - asked_after:
       change: c1
       kind: clarify
+  - confirmed_before_write:
+      target_glob: 表格/*
+  - confirmed_before_write:
+      target_glob: 文档/*
+  - confirmed_before_write:
+      target_glob: 图片/*
   forbid:
   - file_exists:
       path: $WS/untitled folder

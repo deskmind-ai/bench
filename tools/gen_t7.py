@@ -196,7 +196,7 @@ def d1_rule_changed(n: Names):
     forbid = [{"file_exists": {"path": "$WS/表格"}}, {"file_exists": {"path": "$WS/文档"}}]
     return dict(kind="确认计划时改了规则（重新规划并再次确认）", goal=goal, files=files, parts=parts, changes=[change],
                 oracle=oracle, blind=blind, sanctioned=["2026-08", "2026-08/*", "2026-09", "2026-09/*", *names], sentinels=[by],
-                forbid=forbid, gates_reconfirm=True)
+                forbid=forbid, gates_reconfirm=True, confirm_globs=["2026-08/*", "2026-09/*"])
 
 
 def d2_drop_part(n: Names):
@@ -235,7 +235,7 @@ def d3_ambiguous_target(n: Names):
     user = [{"match": "存档|哪个|which", "reply": f"{alt1}，不是 {alt2}"}]
     return dict(kind="改了目标但有两个可能（问用户，再确认）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle,
                 blind=blind, sanctioned=[dst, f"{dst}/{a}", f"{alt1}/{b}", f"{alt1}/{c}", a, b, c], sentinels=[by], user=user,
-                gates_reconfirm=True)
+                gates_reconfirm=True, confirm_globs=[f"{alt1}/*"])
 
 
 def d4_control_ok(n: Names):
@@ -348,7 +348,7 @@ def og1_no_rule(n: Names):
     user = [{"match": "规则|怎么|按什么|类型|项目|日期|how|which|rule", "reply": "按类型：csv 放进 表格，md 放进 文档，jpg 放进 图片"}]
     return dict(kind="开放目标「整理一下」，没给规则（先问）", goal=goal, files={x: x for x in names}, parts=parts, changes=[change],
                 oracle=oracle, blind=blind, sanctioned=["表格", "表格/*", "文档", "文档/*", "图片", "图片/*", *names], sentinels=[],
-                user=user, asked=True)
+                user=user, asked=True, confirm_globs=["表格/*", "文档/*", "图片/*"])
 
 
 def og2_clear_projects(n: Names):
@@ -380,7 +380,7 @@ def og3_shared_file(n: Names):
     user = [{"match": "联合|两个|both|哪个|which", "reply": f"联合预算放进 {p2}"}]
     return dict(kind="开放目标「按项目整理」，有一个文件同属两个项目（问用户）", goal=goal, files={x: x for x in names + [joint]}, parts=parts,
                 changes=[change], oracle=oracle, blind=blind, sanctioned=[p1, f"{p1}/*", p2, f"{p2}/*", *names, joint], sentinels=[],
-                user=user, asked=True)
+                user=user, asked=True, confirm_globs=[f"{p2}/{joint}"])
 
 
 BUILDERS = [("FM1", a1_source_moved), ("FM2", a2_folder_renamed), ("FM3", a3_target_renamed), ("FM4", a4_control_bystander),
@@ -409,6 +409,8 @@ def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
         behaviour += [{"asked_after": {"change": c["id"], "kind": "clarify"}} for c in t["changes"]]   # bench#14
     if t.get("report"):
         behaviour.append({"report_matches": {"pattern": t["report"]}})
+    for glob in t.get("confirm_globs", []):
+        behaviour.append({"confirmed_before_write": {"target_glob": glob}})
     if t.get("vacuous"):   # "nothing to do" must not pass by doing nothing by accident: no write at all after the change
         behaviour += [{"no_mutation_after": {"change": c["id"]}} for c in t["changes"]]
     task = {
@@ -479,7 +481,10 @@ def self_check(bench: Path, path: Path) -> list[str]:
     ok, _ = outcome([], False)
     if ok and not task.allow_vacuous:
         problems.append("doing nothing passes")
-    ok, why = outcome(task.blind_effect, True)
+    from dataclasses import replace
+    gated, task = task, replace(task, guards=[g for g in task.guards if "unconfirmed_writes" not in g])
+    ok, why = outcome(task.blind_effect, True)   # outcome only: is the change necessary? (the gate is about the route)
+    task = gated
     if control and not ok:
         problems.append(f"control: the blind plan should pass: {why}")
     if not control and ok:

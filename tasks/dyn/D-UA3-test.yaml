@@ -96,6 +96,8 @@ grade:
       change: c1
       within: 1
       in: *id001
+  - confirmed_before_write:
+      target_glob: 存档/*
   forbid:
   - file_exists:
       path: $WS/untitled folder

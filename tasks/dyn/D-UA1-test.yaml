@@ -103,6 +103,10 @@ grade:
       change: c1
       within: 1
       in: *id001
+  - confirmed_before_write:
+      target_glob: 2026-08/*
+  - confirmed_before_write:
+      target_glob: 2026-09/*
   forbid:
   - file_exists:
       path: $WS/untitled folder
