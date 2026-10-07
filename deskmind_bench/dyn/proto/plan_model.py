@@ -49,6 +49,79 @@ Rules:
 leave it out when the writes show it."""
 
 
+SYSTEM_NUMBERED = """You plan file tasks on a Mac for a user. You never act yourself: an executor carries out one part at a time, \
+and code checks your plan against the real files before the user sees it.
+
+The files and folders are listed with numbers. Point at them by number; never copy a name. Code builds the paths.
+
+Answer with one JSON object and nothing else, in one of two forms.
+
+A plan:
+{"parts": [{"goal": "<one part, in the user's language>",
+            "writes": [{"op": "mkdir", "to": "<new folder path>"},
+                       {"op": "move", "file": <number>, "to": "<target folder; \"\" for the top level>", "rename": "<new name, only when renaming>"},
+                       {"op": "copy", "file": <number>, "to": "<target folder>", "rename": "<name of the copy, optional>"},
+                       {"op": "delete", "file": <number>}]}]}
+
+A question, when the goal leaves something open that the files cannot settle:
+{"ask": "<one short question, in the user's language>"}
+
+Rules:
+- A rename is a move with "rename" (and "to" the folder it is in).
+- List every file operation of a part in its "writes", in order; a part that only reads has none.
+- Do only what the goal and the user asked. Follow every constraint ("其他文件不要动").
+- Keep parts that are already done out of a revised plan."""
+
+
+def entries(ws: Path) -> list[str]:
+    """The workspace listing in the order it is numbered for the model: what `file` numbers refer to."""
+    return sorted(tree(ws))
+
+
+def from_numbered(writes: list, listing: list[str]) -> tuple[list[dict], list[str]]:
+    """The model's numbered writes ({"file": n, "to", "rename"}) as plain src/dst writes, built by code; problems in
+    words for the model. A rename keeps the extension unless the new name gives one."""
+    out, problems = [], []
+    for i, w in enumerate(writes if isinstance(writes, list) else [], 1):
+        if not isinstance(w, dict):
+            problems.append(f"write {i}: not an object")
+            continue
+        op = w.get("op")
+        if op == "mkdir":
+            to = (w.get("to") or w.get("dst") or "").strip().strip("/")
+            if not to:
+                problems.append(f"write {i} (mkdir): needs \"to\"")
+            else:
+                out.append({"op": "mkdir", "dst": to})
+            continue
+        try:
+            n = int(w.get("file"))
+        except (TypeError, ValueError):
+            problems.append(f"write {i} ({op}): \"file\" must be a number from the list")
+            continue
+        if not 1 <= n <= len(listing):
+            problems.append(f"write {i} ({op}): there is no file {n}")
+            continue
+        src = listing[n - 1].rstrip("/")
+        if op == "delete":
+            out.append({"op": "delete", "src": src})
+            continue
+        if op not in ("move", "copy"):
+            problems.append(f"write {i}: unknown operation {op!r}")
+            continue
+        to = w.get("to", "")
+        if not isinstance(to, str):
+            problems.append(f"write {i} ({op}): \"to\" must be a folder path")
+            continue
+        name = w.get("rename") or Path(src).name
+        if not isinstance(name, str) or "/" in name or not name.strip():
+            problems.append(f"write {i} ({op}): \"rename\" must be a plain file name")
+            continue
+        to = to.strip().strip("/")
+        out.append({"op": op, "src": src, "dst": f"{to}/{name.strip()}" if to else name.strip()})
+    return out, problems
+
+
 @dataclass
 class Checked:
     ok: bool
@@ -194,18 +267,27 @@ class PlanFailed(Exception):
 
 class ModelPlanner:
     def __init__(self, complete: Callable[[list[dict]], str], by: str = "local-4b", rewrites: int = 1,
-                 peek_bytes: int = 0, peek_files: int = 20) -> None:
+                 peek_bytes: int = 0, peek_files: int = 20, form: str = "paths", precheck=None) -> None:
         """peek_bytes > 0 shows the planner the text of small files (at most peek_files of them, each at most peek_bytes):
         for tasks whose next step depends on what a file says (#62 BR). Only for workspaces the bench generates: a
         real folder's contents must not go to a model that is not on the machine (#33)."""
         self.complete, self.by, self.rewrites = complete, by, rewrites
         self.peek_bytes, self.peek_files = peek_bytes, peek_files
+        if form not in ("paths", "numbered"):
+            raise ValueError(f"form must be paths or numbered, not {form!r}")
+        # "numbered" (T7 amendment 4): the model points at files by number and code builds the paths -- copying a name
+        # exactly is code's job; the untrained 4B spaces out and mixes up names it copies.
+        self.form = form
+        # precheck(goal, listing, said) -> bool: is the method settled? (T7 arm e). When it says no, the plan opens
+        # with a question instead of a guess -- the 4B rarely asks unprompted, but answers this one question well.
+        self.precheck = precheck
         self.calls = 0
         self.question: str | None = None
 
     def _prompt(self, goal: str, ws: Path, said: list[str], done: list[str], why: str | None) -> str:
-        files = sorted(tree(ws))
-        listing = "\n".join(files[:MAX_FILES]) + (f"\n… ({len(files) - MAX_FILES} more)" if len(files) > MAX_FILES else "")
+        files = entries(ws)
+        shown = [f"{i + 1}. {f}" for i, f in enumerate(files)] if self.form == "numbered" else files
+        listing = "\n".join(shown[:MAX_FILES]) + (f"\n… ({len(files) - MAX_FILES} more)" if len(files) > MAX_FILES else "")
         lines = [f"Goal: {goal}", "", "Files in the workspace:", listing or "(empty)"]
         if self.peek_bytes:
             shown = []
@@ -229,8 +311,9 @@ class ModelPlanner:
         return "\n".join(lines)
 
     def _write(self, goal: str, ws: Path, said: list[str], done: list[str], why: str | None) -> dict:
-        msgs = [{"role": "system", "content": SYSTEM},
+        msgs = [{"role": "system", "content": SYSTEM_NUMBERED if self.form == "numbered" else SYSTEM},
                 {"role": "user", "content": self._prompt(goal, ws, said, done, why)}]
+        listing = entries(ws)
         problems: list[str] = []
         for attempt in range(self.rewrites + 1):
             if attempt:
@@ -245,6 +328,10 @@ class ModelPlanner:
                 problems = [f"the answer is not JSON: {exc}"]
                 continue
             problems = _shape(obj)
+            if not problems and self.form == "numbered" and "parts" in obj and not obj.get("ask"):
+                for p in obj["parts"]:
+                    p["writes"], bad = from_numbered(p.get("writes") or [], listing)
+                    problems += bad
             if not problems and "parts" in obj and not obj.get("ask"):
                 files = tree(ws)
                 seen = set(files)
@@ -267,7 +354,23 @@ class ModelPlanner:
         return Plan(version, self.by, subgoals, constraints, question=self.question)
 
     def plan(self, goal: str, channel: str = "gui", *, ws: Path | None = None, said: list[str] | None = None) -> Plan:
-        return self._plan(self._write(goal, Path(ws), list(said or []), [], None), 1, channel, "s")
+        said = list(said or [])
+        if self.precheck is not None and not self.precheck(goal, entries(Path(ws)), said):
+            return self._plan({"ask": self._question(goal, Path(ws), said)}, 1, channel, "s")
+        return self._plan(self._write(goal, Path(ws), said, [], None), 1, channel, "s")
+
+    def _question(self, goal: str, ws: Path, said: list[str]) -> str:
+        """The question to open with when the precheck says the method is not settled: the model's own, or a plain one."""
+        msgs = [{"role": "system", "content": "The user's request leaves open how to do it. Ask the user one short "
+                                              "question that settles it, in the user's language. Answer with one JSON "
+                                              "object: {\"ask\": \"...\"}"},
+                {"role": "user", "content": self._prompt(goal, ws, said, [], None)}]
+        self.calls += 1
+        try:
+            q = parse(self.complete(msgs)).get("ask")
+        except ValueError:
+            q = None
+        return q.strip() if isinstance(q, str) and q.strip() else "要按什么方式整理这些文件？"
 
     def replan(self, goal: str, plan: Plan, said: list[str], *, ws: Path | None = None, why: str | None = None,
                done: list[str] | None = None) -> Plan:
