@@ -8,7 +8,7 @@ Arms (the T7 preregistration on deskmind#62):
   b  fixed plan: ModelPlanner (local), every decision "continue"
   c  dynamic, local: ModelPlanner (local), decisions by the local Brain over /v1/systemone
   d  dynamic, frontier planning: ModelPlanner with a frontier model (synthetic workspaces only, #33 / #54)
-  e  as c, but every decision is one lettered choice to the local 4B (ChatChoiceDecider, agreement of greedy + 4
+  e  as c, but every decision is one lettered choice to the base Qwen3.5-4B at --choice-url (ChatChoiceDecider, agreement of greedy + 4
      samples as its confidence), and a pre-plan check "能否确定怎么做？" opens the plan with a question when it says no
      (EnoughInfoCheck) -- T7 amendment 4
   t  reference: TemplatePlanner, decisions as in c (outside the pass rule)
@@ -225,7 +225,8 @@ def run_one(task_path: Path, arm: str, out: Path, **kw) -> dict:
 def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://127.0.0.1:8899",
             systemone_url: str = "http://127.0.0.1:8796", frontier_model: str | None = None,
             frontier_url: str = "https://openrouter.ai/api/v1", fixtures: Path | None = None,
-            local_chat=None, text=None, decider=None, local_sampled=None) -> dict:
+            local_chat=None, text=None, decider=None, local_sampled=None, systemone_weights: str | None = None,
+            choice_url: str = "http://127.0.0.1:8901") -> dict:
     """local_chat / text / decider / local_sampled replace the HTTP backends (tests)."""
     task = load_task(task_path)
     fixtures = Path(fixtures) if fixtures else BENCH / "fixtures"
@@ -264,14 +265,14 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
             planner = TemplatePlanner()
         else:
             if arm == "e":
-                sampled = local_sampled or openai_chat_sampled(text_url.rstrip("/") + "/v1", "local-4b")
+                sampled = local_sampled or openai_chat_sampled(choice_url.rstrip("/") + "/v1", "base-4b")
                 precheck = Recorded(EnoughInfoCheck(sampled, samples=4))
             planner = ModelPlanner(local_chat, by="local-4b", peek_bytes=1024, form="numbered", precheck=precheck)
         if arm == "b":
             decider = ScriptedDecider(lambda ctx: "continue", by="code")
         elif arm == "e":
-            decider = decider or ChatChoiceDecider(local_sampled or openai_chat_sampled(text_url.rstrip("/") + "/v1",
-                                                                                         "local-4b"), samples=4)
+            decider = decider or ChatChoiceDecider(local_sampled or openai_chat_sampled(choice_url.rstrip("/") + "/v1",
+                                                                                         "base-4b"), samples=4)
         else:
             decider = decider or SystemOneDecider(systemone_url)
         executor = DeclaredWritesExecutor(run_dir, fallback=OpListExecutor(text, run_dir))
@@ -282,6 +283,14 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
             calls["precheck_local"] = precheck.check.calls
         calls["oplist_local"] = getattr(text, "calls", 0)
     wall = time.time() - t0
+    weights = {"systemone": systemone_weights}
+    import urllib.request
+    for key, url in (("text_server", text_url), ("choice_server", choice_url if arm == "e" else None)):
+        try:   # what each text server serves (textgen GET /info); stub backends have none
+            with urllib.request.urlopen(url.rstrip("/") + "/info", timeout=5) as r:
+                weights[key] = json.load(r)
+        except Exception:  # noqa: BLE001
+            weights[key] = None
     orch, changes = ev.run_events(run_dir)
     g = grade(task, GradeContext(workspace=ws, vars=task.vars,
                                  run={"state": outcome.get("state"), "metrics": dict(NULL_METRICS), "dir": str(run_dir),
@@ -299,6 +308,7 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
               "expect": {c.id: c.expect for c in task.changes}, "decisions": decisions, "behaviour_kinds": kinds,
               "writes": [w["ts"] for w in write_steps(run_dir, orch)],
               "asks": [{"kind": e.get("kind"), "ts": e["ts"]} for e in orch if e["t"] == "ask"] + _trace_asks(run_dir), "calls": calls, "wall_s": round(wall, 2),
+              "weights": weights,
               "prechecks": precheck.log if arm == "e" and precheck is not None else [],
               "skipped_changes": [json.loads(l) for l in (run_dir / "skipped_changes.jsonl").read_text().splitlines()]
               if (run_dir / "skipped_changes.jsonl").exists() else []}
@@ -314,9 +324,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--text-url", default="http://127.0.0.1:8899")
     ap.add_argument("--systemone-url", default="http://127.0.0.1:8796")
     ap.add_argument("--frontier-model", default=None)
+    ap.add_argument("--choice-url", default="http://127.0.0.1:8901", help="arm e: the base 4B's text server")
+    ap.add_argument("--systemone-weights", default=None, help="what the /v1/systemone server runs (path:sha256), recorded")
     args = ap.parse_args(argv)
     r = run_one(args.task, args.arm, args.out, text_url=args.text_url, systemone_url=args.systemone_url,
-                frontier_model=args.frontier_model)
+                frontier_model=args.frontier_model, systemone_weights=args.systemone_weights,
+                choice_url=args.choice_url)
     print(json.dumps({k: r[k] for k in ("task", "arm", "state", "strict", "partial", "violations", "calls", "wall_s")},
                      ensure_ascii=False))
     return 0

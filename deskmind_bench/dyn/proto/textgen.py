@@ -20,9 +20,19 @@ def main() -> None:
     ap.add_argument("--port", type=int, default=8899)
     ap.add_argument("--max-tokens", type=int, default=1500)
     args = ap.parse_args()
+    import hashlib
+    from pathlib import Path
+
     from mlx_lm import generate, load
     from mlx_lm.sample_utils import make_sampler
     model, tokenizer = load(args.model)
+    # What the runs record as the planner's weights (GET /info): the path and a sha256 over the weight files.
+    h = hashlib.sha256()
+    for f in sorted(Path(args.model).glob("*.safetensors")):
+        with f.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 24), b""):
+                h.update(chunk)
+    info = json.dumps({"model": str(Path(args.model).resolve()), "sha256": h.hexdigest()}).encode()
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):  # noqa: N802
@@ -48,7 +58,7 @@ def main() -> None:
         def do_GET(self):  # noqa: N802
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"ok")
+            self.wfile.write(info if self.path.rstrip("/").endswith("info") else b"ok")
 
         def log_message(self, *a):
             pass
