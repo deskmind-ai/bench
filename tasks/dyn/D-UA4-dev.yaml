@@ -98,6 +98,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 样本，把 星图草案-17.txt 放进去
+    writes:
+    - op: mkdir
+      dst: 样本
+    - op: move
+      src: 星图草案-17.txt
+      dst: 样本/星图草案-17.txt
+  - goal: 把 orchard-yield-57.txt 改名为 已核-orchard-yield-57.txt
+    writes:
+    - op: move
+      src: orchard-yield-57.txt
+      dst: 已核-orchard-yield-57.txt
+  - goal: 把 reef-count-82.txt 也放进 样本
+    writes:
+    - op: move
+      src: reef-count-82.txt
+      dst: 样本/reef-count-82.txt
 oracle_effect:
 - |
   mkdir -p '样本'

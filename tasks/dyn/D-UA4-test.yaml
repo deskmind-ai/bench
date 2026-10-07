@@ -98,6 +98,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 shelf，把 渡口排班-90.csv 放进去
+    writes:
+    - op: mkdir
+      dst: shelf
+    - op: move
+      src: 渡口排班-90.csv
+      dst: shelf/渡口排班-90.csv
+  - goal: 把 灯塔巡检-50.log 改名为 已核-灯塔巡检-50.log
+    writes:
+    - op: move
+      src: 灯塔巡检-50.log
+      dst: 已核-灯塔巡检-50.log
+  - goal: 把 星图草案-26.log 也放进 shelf
+    writes:
+    - op: move
+      src: 星图草案-26.log
+      dst: shelf/星图草案-26.log
 oracle_effect:
 - |
   mkdir -p 'shelf'

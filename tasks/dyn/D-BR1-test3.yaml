@@ -1,0 +1,162 @@
+# T7 v0 (deskmind#60, #62), test3: 按金额分两个文件夹（分支在计划里，对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-BR1-test3
+title: T7 test3：按金额分两个文件夹（分支在计划里，对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  看每个 票-*.txt 里写的金额：1000 元及以上的放进 大额，其余放进 小额。其他文件不要动。
+fixture: dyn_br1_test3
+seed:
+  pool: t7-test
+  seed: 7309
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/苔藓观察-76.md
+reference_plan:
+- id: inv0
+  post: invoice_0
+- id: inv1
+  post: invoice_1
+- id: inv2
+  post: invoice_2
+- id: inv3
+  post: invoice_3
+changes:
+- id: c1
+  type: branch_on_result
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 大额
+- 大额/*
+- 小额
+- 小额/*
+- 票-7437.txt
+- 票-8168.txt
+- 票-1661.txt
+- 票-1731.txt
+grade:
+  checkpoints:
+  - name: invoice_0
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/小额/票-7437.txt
+          value: '票-7437.txt
+
+            金额：380 元
+
+            '
+      - file_absent:
+          path: $WS/票-7437.txt
+  - name: invoice_1
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/大额/票-8168.txt
+          value: '票-8168.txt
+
+            金额：2300 元
+
+            '
+      - file_absent:
+          path: $WS/票-8168.txt
+  - name: invoice_2
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/小额/票-1661.txt
+          value: '票-1661.txt
+
+            金额：760 元
+
+            '
+      - file_absent:
+          path: $WS/票-1661.txt
+  - name: invoice_3
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/大额/票-1731.txt
+          value: '票-1731.txt
+
+            金额：2300 元
+
+            '
+      - file_absent:
+          path: $WS/票-1731.txt
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 大额 和 小额
+    writes:
+    - op: mkdir
+      dst: 大额
+    - op: mkdir
+      dst: 小额
+  - goal: 票-7437.txt 金额 380 元，放进 小额
+    writes:
+    - op: move
+      src: 票-7437.txt
+      dst: 小额/票-7437.txt
+  - goal: 票-8168.txt 金额 2300 元，放进 大额
+    writes:
+    - op: move
+      src: 票-8168.txt
+      dst: 大额/票-8168.txt
+  - goal: 票-1661.txt 金额 760 元，放进 小额
+    writes:
+    - op: move
+      src: 票-1661.txt
+      dst: 小额/票-1661.txt
+  - goal: 票-1731.txt 金额 2300 元，放进 大额
+    writes:
+    - op: move
+      src: 票-1731.txt
+      dst: 大额/票-1731.txt
+oracle_effect:
+- |
+  mkdir -p 大额 小额
+  mv '票-7437.txt' 小额/
+  mv '票-8168.txt' 大额/
+  mv '票-1661.txt' 小额/
+  mv '票-1731.txt' 大额/
+blind_effect:
+- |
+  mkdir -p 大额 小额
+  mv '票-7437.txt' 小额/
+  mv '票-8168.txt' 大额/
+  mv '票-1661.txt' 小额/
+  mv '票-1731.txt' 大额/

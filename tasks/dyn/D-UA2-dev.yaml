@@ -95,6 +95,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 已整理，把 reef-count-31.md 放进去
+    writes:
+    - op: mkdir
+      dst: 已整理
+    - op: move
+      src: reef-count-31.md
+      dst: 已整理/reef-count-31.md
+  - goal: 把 苔藓观察-38.csv 改名为 已核-苔藓观察-38.csv
+    writes:
+    - op: move
+      src: 苔藓观察-38.csv
+      dst: 已核-苔藓观察-38.csv
+  - goal: 把 渡口排班-17.log 也放进 已整理
+    writes:
+    - op: move
+      src: 渡口排班-17.log
+      dst: 已整理/渡口排班-17.log
 oracle_effect:
 - |
   mkdir -p '已整理'

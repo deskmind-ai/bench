@@ -108,6 +108,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 inbox-old，把 窑温曲线-10.txt 放进去
+    writes:
+    - op: mkdir
+      dst: inbox-old
+    - op: move
+      src: 窑温曲线-10.txt
+      dst: inbox-old/窑温曲线-10.txt
+  - goal: 把 harbor-tides-56.md 改名为 已核-harbor-tides-56.md
+    writes:
+    - op: move
+      src: harbor-tides-56.md
+      dst: 已核-harbor-tides-56.md
+  - goal: 把 oak-survey-38.txt 也放进 inbox-old
+    writes:
+    - op: move
+      src: oak-survey-38.txt
+      dst: inbox-old/oak-survey-38.txt
 oracle_effect:
 - |
   mkdir -p 'inbox-old'

@@ -72,6 +72,17 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 待处理
+    writes:
+    - op: mkdir
+      dst: 待处理
+  - goal: 没有 季报-终稿.md：把 模板/季报模板.md 复制到 待处理，命名为 季报-终稿.md
+    writes:
+    - op: copy
+      src: 模板/季报模板.md
+      dst: 待处理/季报-终稿.md
 oracle_effect:
 - |
   mkdir -p '待处理'

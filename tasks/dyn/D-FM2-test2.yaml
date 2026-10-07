@@ -1,0 +1,139 @@
+# T7 v0 (deskmind#60, #62), test2: 来源文件夹改了名（重新规划）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-FM2-test2
+title: T7 test2：来源文件夹改了名（重新规划）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  先把 待处理 里的 蜂箱清点-65.log 移到工作目录顶层；然后新建文件夹 field，把 待处理 里的 窑温曲线-42.log 放进去；最后把 待处理 里的 reef-count-93.log 也放进 field。其他文件不要动。
+fixture: dyn_fm2_test2
+seed:
+  pool: t7-test
+  seed: 7201
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/航线图-36.csv
+reference_plan:
+- id: part1
+  post: part1_move_up
+- id: part2
+  post: part2_create_move
+- id: part3
+  post: part3_move
+changes:
+- id: c1
+  type: file_moved
+  trigger:
+    at_checkpoint: part1_move_up
+  phase: early
+  effect:
+  - fs:
+      op: rename
+      src: $WS/待处理
+      dst: $WS/待处理-旧
+  expect:
+    label: replan
+    accept: &id001
+    - replan
+    - repair
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 蜂箱清点-65.log
+- field
+- field/*
+- 待处理/*
+- 待处理-旧/*
+grade:
+  checkpoints:
+  - name: part1_move_up
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/蜂箱清点-65.log
+          value: '蜂箱清点-65.log
+
+            '
+      - file_absent:
+          path: $WS/待处理/蜂箱清点-65.log
+  - name: part2_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/field/窑温曲线-42.log
+          value: '窑温曲线-42.log
+
+            '
+      - file_absent:
+          path: $WS/待处理-旧/窑温曲线-42.log
+      - file_absent:
+          path: $WS/待处理/窑温曲线-42.log
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/field/reef-count-93.log
+          value: 'reef-count-93.log
+
+            '
+      - file_absent:
+          path: $WS/待处理-旧/reef-count-93.log
+      - file_absent:
+          path: $WS/待处理/reef-count-93.log
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 把 待处理 里的 蜂箱清点-65.log 移到工作目录顶层
+    writes:
+    - op: move
+      src: 待处理/蜂箱清点-65.log
+      dst: 蜂箱清点-65.log
+  - goal: 新建文件夹 field，把 待处理 里的 窑温曲线-42.log 放进去
+    writes:
+    - op: mkdir
+      dst: field
+    - op: move
+      src: 待处理/窑温曲线-42.log
+      dst: field/窑温曲线-42.log
+  - goal: 把 待处理 里的 reef-count-93.log 也放进 field
+    writes:
+    - op: move
+      src: 待处理/reef-count-93.log
+      dst: field/reef-count-93.log
+oracle_effect:
+- |
+  mv '待处理/蜂箱清点-65.log' .
+  mv '待处理' '待处理-旧'
+  mkdir -p 'field'
+  mv '待处理-旧/窑温曲线-42.log' 'field/'
+  mv '待处理-旧/reef-count-93.log' 'field/'
+blind_effect:
+- |
+  mv '待处理/蜂箱清点-65.log' .
+  mv '待处理' '待处理-旧'
+  mkdir -p 'field'
+  mv '待处理/窑温曲线-42.log' 'field/' || true
+  mv '待处理/reef-count-93.log' 'field/' || true

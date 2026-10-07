@@ -110,6 +110,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 暗房，把 oak-survey-92.log 放进去
+    writes:
+    - op: mkdir
+      dst: 暗房
+    - op: move
+      src: oak-survey-92.log
+      dst: 暗房/oak-survey-92.log
+  - goal: 把 星图草案-29.md 也放进 暗房
+    writes:
+    - op: move
+      src: 星图草案-29.md
+      dst: 暗房/星图草案-29.md
+  - goal: 把 kiln-temps-54.md 也放进 暗房
+    writes:
+    - op: move
+      src: kiln-temps-54.md
+      dst: 暗房/kiln-temps-54.md
 oracle_effect:
 - |
   mkdir -p '暗房'

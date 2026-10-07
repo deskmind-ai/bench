@@ -95,6 +95,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 样本，把 harbor-tides-72.csv 放进去
+    writes:
+    - op: mkdir
+      dst: 样本
+    - op: move
+      src: harbor-tides-72.csv
+      dst: 样本/harbor-tides-72.csv
+  - goal: 把 渡口排班-54.log 改名为 已核-渡口排班-54.log
+    writes:
+    - op: move
+      src: 渡口排班-54.log
+      dst: 已核-渡口排班-54.log
+  - goal: 把 oak-survey-32.log 也放进 样本
+    writes:
+    - op: move
+      src: oak-survey-32.log
+      dst: 样本/oak-survey-32.log
 oracle_effect:
 - |
   mkdir -p '样本'

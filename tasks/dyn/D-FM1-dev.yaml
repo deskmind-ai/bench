@@ -108,6 +108,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 库房，把 loom-pattern-17.md 放进去
+    writes:
+    - op: mkdir
+      dst: 库房
+    - op: move
+      src: loom-pattern-17.md
+      dst: 库房/loom-pattern-17.md
+  - goal: 把 reef-count-96.log 改名为 已核-reef-count-96.log
+    writes:
+    - op: move
+      src: reef-count-96.log
+      dst: 已核-reef-count-96.log
+  - goal: 把 渡口排班-32.md 也放进 库房
+    writes:
+    - op: move
+      src: 渡口排班-32.md
+      dst: 库房/渡口排班-32.md
 oracle_effect:
 - |
   mkdir -p '库房'

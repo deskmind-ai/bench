@@ -86,6 +86,23 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 待报销，把 票-青禾-0812.txt 放进去
+    writes:
+    - op: mkdir
+      dst: 待报销
+    - op: move
+      src: 票-青禾-0812.txt
+      dst: 待报销/票-青禾-0812.txt
+  after_answer:
+  - goal: 新建文件夹 待报销，把 票-青禾-0927.txt 放进去
+    writes:
+    - op: mkdir
+      dst: 待报销
+    - op: move
+      src: 票-青禾-0927.txt
+      dst: 待报销/票-青禾-0927.txt
 oracle_effect:
 - |
   mkdir -p 待报销

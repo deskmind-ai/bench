@@ -118,6 +118,34 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 大额 和 小额
+    writes:
+    - op: mkdir
+      dst: 大额
+    - op: mkdir
+      dst: 小额
+  - goal: 票-6807.txt 金额 2300 元，放进 大额
+    writes:
+    - op: move
+      src: 票-6807.txt
+      dst: 大额/票-6807.txt
+  - goal: 票-9553.txt 金额 2300 元，放进 大额
+    writes:
+    - op: move
+      src: 票-9553.txt
+      dst: 大额/票-9553.txt
+  - goal: 票-8940.txt 金额 2300 元，放进 大额
+    writes:
+    - op: move
+      src: 票-8940.txt
+      dst: 大额/票-8940.txt
+  - goal: 票-9353.txt 金额 760 元，放进 小额
+    writes:
+    - op: move
+      src: 票-9353.txt
+      dst: 小额/票-9353.txt
 oracle_effect:
 - |
   mkdir -p 大额 小额

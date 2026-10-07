@@ -1,0 +1,143 @@
+# T7 v0 (deskmind#60, #62), test3: 源文件被挪进子文件夹（修补）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-FM1-test3
+title: T7 test3：源文件被挪进子文件夹（修补）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  先新建文件夹 shelf，把 窑温曲线-18.txt 放进去；然后把 glacier-map-62.md 改名为 已核-glacier-map-62.md；最后把 渡口排班-65.md 也放进 shelf。其他文件不要动。
+fixture: dyn_fm1_test3
+seed:
+  pool: t7-test
+  seed: 7300
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/oak-survey-46.csv
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+  post: part3_move
+changes:
+- id: c1
+  type: file_moved
+  phase: early
+  trigger:
+    at_state:
+      all_of:
+      - &id001
+        all_of:
+        - file_text_equals:
+            path: $WS/shelf/窑温曲线-18.txt
+            value: '窑温曲线-18.txt
+
+              '
+        - file_absent:
+            path: $WS/窑温曲线-18.txt
+      - file_exists:
+          path: $WS/渡口排班-65.md
+  effect:
+  - fs:
+      op: mv
+      src: $WS/渡口排班-65.md
+      dst: $WS/已整理/渡口排班-65.md
+  expect:
+    label: repair
+    accept: &id002
+    - repair
+    - replan
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- shelf
+- shelf/*
+- 窑温曲线-18.txt
+- glacier-map-62.md
+- 已核-glacier-map-62.md
+- 渡口排班-65.md
+- 已整理/渡口排班-65.md
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check: *id001
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-glacier-map-62.md
+          value: 'glacier-map-62.md
+
+            '
+      - file_absent:
+          path: $WS/glacier-map-62.md
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/shelf/渡口排班-65.md
+          value: '渡口排班-65.md
+
+            '
+      - file_absent:
+          path: $WS/渡口排班-65.md
+      - file_absent:
+          path: $WS/已整理/渡口排班-65.md
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id002
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 shelf，把 窑温曲线-18.txt 放进去
+    writes:
+    - op: mkdir
+      dst: shelf
+    - op: move
+      src: 窑温曲线-18.txt
+      dst: shelf/窑温曲线-18.txt
+  - goal: 把 glacier-map-62.md 改名为 已核-glacier-map-62.md
+    writes:
+    - op: move
+      src: glacier-map-62.md
+      dst: 已核-glacier-map-62.md
+  - goal: 把 渡口排班-65.md 也放进 shelf
+    writes:
+    - op: move
+      src: 渡口排班-65.md
+      dst: shelf/渡口排班-65.md
+oracle_effect:
+- |
+  mkdir -p 'shelf'
+  mv '窑温曲线-18.txt' 'shelf/'
+  mv 'glacier-map-62.md' '已核-glacier-map-62.md'
+  mv '渡口排班-65.md' '已整理/'
+  mv '已整理/渡口排班-65.md' 'shelf/'
+blind_effect:
+- |
+  mkdir -p 'shelf'
+  mv '窑温曲线-18.txt' 'shelf/'
+  mv '渡口排班-65.md' '已整理/'
+  mv 'glacier-map-62.md' '已核-glacier-map-62.md'
+  mv '渡口排班-65.md' 'shelf/' || true
