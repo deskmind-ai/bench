@@ -144,3 +144,33 @@ class ArmE(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DevFindings(unittest.TestCase):
+    """T7 dev, numbered form (10-07): the 4B writes 'mv' / 'rename' / 'cp', and the precheck looped after an answer."""
+
+    def test_shell_style_op_names_are_read(self):
+        listing = ["a.txt", "b.txt", "资料/", "资料/c.txt"]
+        out, problems = from_numbered([{"op": "mv", "file": 1, "to": "资料"}, {"op": "rename", "file": 2, "rename": "b2.txt"},
+                                       {"op": "rename", "file": 4, "rename": "d.txt"}, {"op": "cp", "file": 1, "to": "资料", "rename": "e.txt"}],
+                                      listing)
+        self.assertEqual(problems, [])
+        self.assertEqual([(w["op"], w["src"], w["dst"]) for w in out],
+                         [("move", "a.txt", "资料/a.txt"), ("move", "b.txt", "b2.txt"), ("move", "资料/c.txt", "资料/d.txt"),
+                          ("copy", "a.txt", "资料/e.txt")])
+
+    def test_the_precheck_is_asked_once(self):
+        ws = files_ws("a.txt")
+        asked = []
+
+        class No:
+            def __call__(self, goal, listing, said):
+                asked.append(list(said))
+                return False
+        planner = ModelPlanner(chat({"ask": "按什么整理？"}, {"parts": [{"goal": "移动", "writes": []}]}),
+                               form="numbered", precheck=No())
+        first = planner.plan("整理一下", ws=ws)
+        self.assertTrue(first.question)
+        second = planner.plan("整理一下", ws=ws, said=["按类型"])
+        self.assertIsNone(second.question)
+        self.assertEqual(asked, [[]], "not asked again once the user has answered")

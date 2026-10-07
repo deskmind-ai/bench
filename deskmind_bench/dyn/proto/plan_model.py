@@ -78,6 +78,9 @@ def entries(ws: Path) -> list[str]:
     return sorted(tree(ws))
 
 
+_ALIASES = {"mv": "move", "rename": "move", "ren": "move", "cp": "copy", "md": "mkdir", "mkdirs": "mkdir", "rm": "delete"}
+
+
 def from_numbered(writes: list, listing: list[str]) -> tuple[list[dict], list[str]]:
     """The model's numbered writes ({"file": n, "to", "rename"}) as plain src/dst writes, built by code; problems in
     words for the model. A rename keeps the extension unless the new name gives one."""
@@ -86,7 +89,10 @@ def from_numbered(writes: list, listing: list[str]) -> tuple[list[dict], list[st
         if not isinstance(w, dict):
             problems.append(f"write {i}: not an object")
             continue
-        op = w.get("op")
+        # The 4B writes shell-ish names (T7 dev, numbered form: 'mv', 'cp', 'rename'); a rename is a move with "rename"
+        op = _ALIASES.get(str(w.get("op") or "").strip().lower(), w.get("op"))
+        if w.get("op") == "rename" and "to" not in w:   # {"op": "rename", "file": n, "rename": x}: stays in its folder
+            w = {**w, "to": None}
         if op == "mkdir":
             to = (w.get("to") or w.get("dst") or "").strip().strip("/")
             if not to:
@@ -110,6 +116,8 @@ def from_numbered(writes: list, listing: list[str]) -> tuple[list[dict], list[st
             problems.append(f"write {i}: unknown operation {op!r}")
             continue
         to = w.get("to", "")
+        if to is None:   # a rename without a target folder: the folder the file is in
+            to = str(Path(src).parent) if "/" in src else ""
         if not isinstance(to, str):
             problems.append(f"write {i} ({op}): \"to\" must be a folder path")
             continue
@@ -355,7 +363,9 @@ class ModelPlanner:
 
     def plan(self, goal: str, channel: str = "gui", *, ws: Path | None = None, said: list[str] | None = None) -> Plan:
         said = list(said or [])
-        if self.precheck is not None and not self.precheck(goal, entries(Path(ws)), said):
+        # The precheck is asked once, before the user has said anything: after an answer the planner plans (or asks in
+        # its own words). Asking it again looped until the dialogue budget ran out on a goal the answer had settled.
+        if self.precheck is not None and not said and not self.precheck(goal, entries(Path(ws)), said):
             return self._plan({"ask": self._question(goal, Path(ws), said)}, 1, channel, "s")
         return self._plan(self._write(goal, Path(ws), said, [], None), 1, channel, "s")
 
