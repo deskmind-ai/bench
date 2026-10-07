@@ -8,7 +8,11 @@ Arms (the T7 preregistration on deskmind#62):
   b  fixed plan: ModelPlanner (local), every decision "continue"
   c  dynamic, local: ModelPlanner (local), decisions by the local Brain over /v1/systemone
   d  dynamic, frontier planning: ModelPlanner with a frontier model (synthetic workspaces only, #33 / #54)
+  e  as c, but every decision is one lettered choice to the local 4B (ChatChoiceDecider, agreement of greedy + 4
+     samples as its confidence), and a pre-plan check "能否确定怎么做？" opens the plan with a question when it says no
+     (EnoughInfoCheck) -- T7 amendment 4
   t  reference: TemplatePlanner, decisions as in c (outside the pass rule)
+b, c, d and e write their plans in the numbered form (amendment 4): files by number, paths built by code.
 Every arm's file writes go through code: declared writes (DeclaredWritesExecutor), else an operation list written
 by the local model (OpListExecutor). Changes fire through ChangeHooks; the user is ScriptedUser with the task's
 user_script. The frontier key is read from the environment (OPENROUTER_API_KEY), never from a file or an argument.
@@ -37,6 +41,7 @@ from .events import EventLog
 from .oplist import DeclaredWritesExecutor, HttpTextPlanner, OpListExecutor
 from .orchestrator import Budget, run
 from .plan import TemplatePlanner
+from .decide_chat import ChatChoiceDecider, EnoughInfoCheck, openai_chat_sampled
 from .plan_model import ModelPlanner, openai_chat
 from .runner import ChangeHooks
 from .user import ScriptedUser
@@ -163,6 +168,18 @@ class StepwiseAgent:
         return {"state": state, "report": report, "steps": n}
 
 
+class Recorded:
+    """An EnoughInfoCheck that keeps every call's answer and vote share (p_ask), for arm (e)'s calibration report."""
+
+    def __init__(self, check: EnoughInfoCheck) -> None:
+        self.check, self.log = check, []
+
+    def __call__(self, goal: str, listing: list[str], said: list[str]) -> bool:
+        ok = self.check(goal, listing, said)
+        self.log.append({"settled": ok, "p_ask": self.check.p_ask, "said": len(said), "ts": round(time.time(), 3)})
+        return ok
+
+
 class SafeHooks(ChangeHooks):
     """A change whose effect can no longer apply (its source was already moved by the run) is recorded as skipped in
     <run>/skipped_changes.jsonl rather than ending the run; the task's behaviour checks then see it never fired."""
@@ -208,8 +225,8 @@ def run_one(task_path: Path, arm: str, out: Path, **kw) -> dict:
 def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://127.0.0.1:8899",
             systemone_url: str = "http://127.0.0.1:8796", frontier_model: str | None = None,
             frontier_url: str = "https://openrouter.ai/api/v1", fixtures: Path | None = None,
-            local_chat=None, text=None, decider=None) -> dict:
-    """local_chat / text / decider replace the HTTP backends (tests)."""
+            local_chat=None, text=None, decider=None, local_sampled=None) -> dict:
+    """local_chat / text / decider / local_sampled replace the HTTP backends (tests)."""
     task = load_task(task_path)
     fixtures = Path(fixtures) if fixtures else BENCH / "fixtures"
     if out.exists():
@@ -228,6 +245,7 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
     budget = Budget(max_actions=task.budget.max_actions, max_dialogue_turns=task.budget.max_dialogue_turns)
     t0 = time.time()
     calls = {"plan_local": 0, "plan_cloud": 0, "oplist_local": 0, "step_local": 0}
+    precheck = None
     if arm == "a":
         agent = StepwiseAgent(local_chat, run_dir, task.budget.max_actions, task.budget.max_dialogue_turns)
         try:
@@ -241,17 +259,27 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
                 raise SystemExit("arm d needs --frontier-model")
             key = os.environ.get("OPENROUTER_API_KEY")
             planner = ModelPlanner(openai_chat(frontier_url, frontier_model, api_key=key, max_tokens=2000), by="cloud",
-                                   peek_bytes=1024)
+                                   peek_bytes=1024, form="numbered")
         elif arm == "t":
             planner = TemplatePlanner()
         else:
-            planner = ModelPlanner(local_chat, by="local-4b", peek_bytes=1024)
-        decider = (ScriptedDecider(lambda ctx: "continue", by="code") if arm == "b"
-                   else decider or SystemOneDecider(systemone_url))
+            if arm == "e":
+                sampled = local_sampled or openai_chat_sampled(text_url.rstrip("/") + "/v1", "local-4b")
+                precheck = Recorded(EnoughInfoCheck(sampled, samples=4))
+            planner = ModelPlanner(local_chat, by="local-4b", peek_bytes=1024, form="numbered", precheck=precheck)
+        if arm == "b":
+            decider = ScriptedDecider(lambda ctx: "continue", by="code")
+        elif arm == "e":
+            decider = decider or ChatChoiceDecider(local_sampled or openai_chat_sampled(text_url.rstrip("/") + "/v1",
+                                                                                         "local-4b"), samples=4)
+        else:
+            decider = decider or SystemOneDecider(systemone_url)
         executor = DeclaredWritesExecutor(run_dir, fallback=OpListExecutor(text, run_dir))
         outcome = run(task.goal, ws, planner=planner, decider=decider, executor=executor, user=user, log=log, budget=budget,
                       channel="oplist", hooks=hooks)
         calls["plan_cloud" if arm == "d" else "plan_local"] = getattr(planner, "calls", 0)
+        if precheck is not None:
+            calls["precheck_local"] = precheck.check.calls
         calls["oplist_local"] = getattr(text, "calls", 0)
     wall = time.time() - t0
     orch, changes = ev.run_events(run_dir)
@@ -271,6 +299,7 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
               "expect": {c.id: c.expect for c in task.changes}, "decisions": decisions, "behaviour_kinds": kinds,
               "writes": [w["ts"] for w in write_steps(run_dir, orch)],
               "asks": [{"kind": e.get("kind"), "ts": e["ts"]} for e in orch if e["t"] == "ask"] + _trace_asks(run_dir), "calls": calls, "wall_s": round(wall, 2),
+              "prechecks": precheck.log if arm == "e" and precheck is not None else [],
               "skipped_changes": [json.loads(l) for l in (run_dir / "skipped_changes.jsonl").read_text().splitlines()]
               if (run_dir / "skipped_changes.jsonl").exists() else []}
     (out / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=1))
@@ -280,7 +309,7 @@ def _run_one(task_path: Path, arm: str, out: Path, *, text_url: str = "http://12
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m deskmind_bench.dyn.proto.tier_o")
     ap.add_argument("task", type=Path)
-    ap.add_argument("--arm", required=True, choices=list("abcdt"))
+    ap.add_argument("--arm", required=True, choices=list("abcdet"))
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--text-url", default="http://127.0.0.1:8899")
     ap.add_argument("--systemone-url", default="http://127.0.0.1:8796")

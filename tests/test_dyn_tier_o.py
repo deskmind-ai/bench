@@ -64,10 +64,11 @@ class Stepwise(unittest.TestCase):
 class Planned(unittest.TestCase):
     def test_a_model_plan_runs_its_declared_writes_and_the_decider_repairs(self):
         d, task = setup()
+        # numbered form (amendment 4): a.txt, b.txt, keep.txt, old/ are 1-4; after the change keep.txt, old/, old/b.txt, ...
         plan = json.dumps({"parts": [
-            {"goal": "新建文件夹 库房，把 a.txt 放进去", "writes": [{"op": "mkdir", "dst": "库房"}, {"op": "move", "src": "a.txt", "dst": "库房/a.txt"}]},
-            {"goal": "把 b.txt 也放进 库房", "writes": [{"op": "move", "src": "b.txt", "dst": "库房/b.txt"}]}]}, ensure_ascii=False)
-        replan = json.dumps({"parts": [{"goal": "把 old/b.txt 放进 库房", "writes": [{"op": "move", "src": "old/b.txt", "dst": "库房/b.txt"}]}]},
+            {"goal": "新建文件夹 库房，把 a.txt 放进去", "writes": [{"op": "mkdir", "to": "库房"}, {"op": "move", "file": 1, "to": "库房"}]},
+            {"goal": "把 b.txt 也放进 库房", "writes": [{"op": "move", "file": 2, "to": "库房"}]}]}, ensure_ascii=False)
+        replan = json.dumps({"parts": [{"goal": "把 old/b.txt 放进 库房", "writes": [{"op": "move", "file": 3, "to": "库房"}]}]},
                             ensure_ascii=False)
         decide = ScriptedDecider(lambda ctx: "replan" if "file_missing" in ctx.signals or ctx.outcome != "met" else "continue")
         r = run_one(task, "c", d / "out", fixtures=d / "fixtures", local_chat=replies(plan, replan), decider=decide)
@@ -100,3 +101,27 @@ class Robustness(unittest.TestCase):
         r = run_one(task, "a", d / "out", fixtures=d / "fixtures", local_chat=chat)
         self.assertTrue((d / "out" / "ws" / "库房" / "a-副本.txt").exists())
         self.assertEqual([a["kind"] for a in r["asks"]], ["clarify"])
+
+
+class ArmE(unittest.TestCase):
+    def test_arm_e_asks_the_lettered_question_and_records_the_precheck(self):
+        d, task = setup()
+        plan = json.dumps({"parts": [
+            {"goal": "新建文件夹 库房，把 a.txt 放进去", "writes": [{"op": "mkdir", "to": "库房"}, {"op": "move", "file": 1, "to": "库房"}]},
+            {"goal": "把 b.txt 也放进 库房", "writes": [{"op": "move", "file": 2, "to": "库房"}]}]}, ensure_ascii=False)
+        replan = json.dumps({"parts": [{"goal": "把 old/b.txt 放进 库房", "writes": [{"op": "move", "file": 3, "to": "库房"}]}]},
+                            ensure_ascii=False)
+        votes = []
+
+        def sampled(messages, temperature=0.0):
+            text = messages[-1]["content"]
+            votes.append(temperature)
+            if "能确定" in text:
+                return "A"
+            return "C" if "程序发现" in text else "A"   # the third option after a change: replan (continue, stop, replan...)
+        r = run_one(task, "e", d / "out", fixtures=d / "fixtures", local_chat=replies(plan, replan), local_sampled=sampled)
+        self.assertEqual(len(r["prechecks"]), 1)
+        self.assertTrue(r["prechecks"][0]["settled"])
+        self.assertEqual(r["prechecks"][0]["p_ask"], 0.0)
+        self.assertIn(0.7, votes, "sampled answers for the agreement confidence")
+        self.assertTrue(r["decisions"], "arm e made its decisions through the lettered question")
