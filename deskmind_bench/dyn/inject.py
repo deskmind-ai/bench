@@ -52,7 +52,9 @@ class Injector:
     # -- the record -----------------------------------------------------------
 
     def _write(self, event: dict) -> None:
-        event = {"v": ev.VERSION, "ts": self.clock(), "run": self.run_id, **event}
+        # Rounded like EventLog's (milliseconds): a decision made within a millisecond of the change must not sort
+        # before it (decision_after compares the two; CI hit it, bench#17).
+        event = {"v": ev.VERSION, "ts": round(self.clock(), 3), "run": self.run_id, **event}
         bad = ev.validate(event)
         if bad:
             raise ValueError("; ".join(bad))

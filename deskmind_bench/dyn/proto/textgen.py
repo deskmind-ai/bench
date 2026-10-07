@@ -1,5 +1,6 @@
-"""A local text server for OpListExecutor's planner: POST {"prompt"} -> {"text"}, the model's own chat template with
-thinking off, greedy. Needs mlx_lm, so run it in brain's environment:
+"""A local text server for Tier O's planners: POST {"prompt"} -> {"text"} (OpListExecutor) and POST
+/v1/chat/completions (ModelPlanner, via plan_model.openai_chat), the model's own chat template with thinking off,
+greedy. Needs mlx_lm, so run it in brain's environment:
 
     cd ~/projj/github.com/deskmind-ai/brain
     uv run --extra mlx python -m deskmind_bench.dyn.proto.textgen models/brain-4b --port 8899 --max-tokens 1500
@@ -19,16 +20,35 @@ def main() -> None:
     ap.add_argument("--port", type=int, default=8899)
     ap.add_argument("--max-tokens", type=int, default=1500)
     args = ap.parse_args()
+    import hashlib
+    from pathlib import Path
+
     from mlx_lm import generate, load
+    from mlx_lm.sample_utils import make_sampler
     model, tokenizer = load(args.model)
+    # What the runs record as the planner's weights (GET /info): the path and a sha256 over the weight files.
+    h = hashlib.sha256()
+    for f in sorted(Path(args.model).glob("*.safetensors")):
+        with f.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 24), b""):
+                h.update(chunk)
+    info = json.dumps({"model": str(Path(args.model).resolve()), "sha256": h.hexdigest()}).encode()
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):  # noqa: N802
             body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-            text = tokenizer.apply_chat_template([{"role": "user", "content": body["prompt"]}], tokenize=False,
-                                                 add_generation_prompt=True, enable_thinking=False)
-            out = generate(model, tokenizer, prompt=text, max_tokens=args.max_tokens, verbose=False)
-            data = json.dumps({"text": out}, ensure_ascii=False).encode()
+            # Two shapes: {"prompt"} -> {"text"}; and OpenAI-style /chat/completions {"messages"} -> {"choices"}, which
+            # plan_model.openai_chat speaks (ModelPlanner). Thinking is off in both, unlike mlx_lm.server's default.
+            chat = self.path.rstrip("/").endswith("chat/completions")
+            messages = body["messages"] if chat else [{"role": "user", "content": body["prompt"]}]
+            text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True,
+                                                 enable_thinking=False)
+            temp = float(body.get("temperature") or 0.0)   # arm (e) samples at 0.7 for its agreement confidence
+            sampler = make_sampler(temp=temp) if temp > 0 else None
+            out = generate(model, tokenizer, prompt=text, max_tokens=int(body.get("max_tokens") or args.max_tokens),
+                           verbose=False, **({"sampler": sampler} if sampler else {})).replace("<|im_end|>", "")
+            reply = {"choices": [{"message": {"role": "assistant", "content": out}}]} if chat else {"text": out}
+            data = json.dumps(reply, ensure_ascii=False).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(data)))
@@ -38,7 +58,7 @@ def main() -> None:
         def do_GET(self):  # noqa: N802
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"ok")
+            self.wfile.write(info if self.path.rstrip("/").endswith("info") else b"ok")
 
         def log_message(self, *a):
             pass

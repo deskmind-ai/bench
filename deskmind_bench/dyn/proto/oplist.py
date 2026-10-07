@@ -18,9 +18,10 @@ from pathlib import Path, PurePosixPath
 
 PROMPT = """你是文件整理助手。下面是这一步要做的事和工作目录里现有的内容。你不执行任何操作，只写一份操作清单，由程序检查后执行。
 
-可用的操作只有两种：
+可用的操作只有三种：
 {{"op": "mkdir", "path": "相对路径"}}
 {{"op": "move", "from": "相对路径", "to": "相对路径"}}
+{{"op": "copy", "from": "相对路径", "to": "相对路径"}}
 改名也用 move。"to" 是完整的新路径，包含文件名，不是目标文件夹。
 
 规则：
@@ -108,6 +109,16 @@ def dry_run(ops: list[dict], ws: Path) -> list[tuple[str, str, str]]:
                 raise ValueError(f"第 {i} 步：上级文件夹不存在：{os.path.dirname(p)}")
             dirs.add(p)
             steps.append(("mkdir", p, ""))
+        elif kind == "copy":
+            src, dst = _norm(o.get("from")), _norm(o.get("to"))
+            if src not in files:
+                raise ValueError(f"第 {i} 步：要复制的文件不存在：{src}")
+            if dst in files or dst in dirs:
+                raise ValueError(f"第 {i} 步：目标已经存在，不能覆盖：{dst}（to 要写完整的新路径，包含文件名）")
+            if os.path.dirname(dst) not in dirs:
+                raise ValueError(f"第 {i} 步：目标所在的文件夹不存在：{os.path.dirname(dst)}")
+            files.add(dst)
+            steps.append(("copy", src, dst))
         elif kind == "move":
             src, dst = _norm(o.get("from")), _norm(o.get("to"))
             if src not in files and src not in dirs:
@@ -130,7 +141,7 @@ def dry_run(ops: list[dict], ws: Path) -> list[tuple[str, str, str]]:
                         s.add(dst + x[len(src):])
             steps.append(("move", src, dst))
         else:
-            raise ValueError(f"第 {i} 步：不认识的操作 {kind!r}，只能用 mkdir 和 move")
+            raise ValueError(f"第 {i} 步：不认识的操作 {kind!r}，只能用 mkdir、move 和 copy")
     return steps
 
 
@@ -142,6 +153,11 @@ def carry_out(steps: list[tuple[str, str, str]], ws: Path, trace: Path | None = 
         if kind == "mkdir":
             (ws / a).mkdir(exist_ok=True)
             detail = f"created folder '{a}'"
+        elif kind == "copy":
+            if (ws / b).exists():
+                raise RuntimeError(f"refusing to overwrite {b}")
+            shutil.copy2(ws / a, ws / b)
+            detail = f"created '{b}' as a copy of '{a}'"
         else:
             if (ws / b).exists():
                 raise RuntimeError(f"refusing to overwrite {b}")
