@@ -21,6 +21,7 @@ def main() -> None:
     ap.add_argument("--max-tokens", type=int, default=1500)
     args = ap.parse_args()
     from mlx_lm import generate, load
+    from mlx_lm.sample_utils import make_sampler
     model, tokenizer = load(args.model)
 
     class Handler(BaseHTTPRequestHandler):
@@ -32,8 +33,10 @@ def main() -> None:
             messages = body["messages"] if chat else [{"role": "user", "content": body["prompt"]}]
             text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True,
                                                  enable_thinking=False)
+            temp = float(body.get("temperature") or 0.0)   # arm (e) samples at 0.7 for its agreement confidence
+            sampler = make_sampler(temp=temp) if temp > 0 else None
             out = generate(model, tokenizer, prompt=text, max_tokens=int(body.get("max_tokens") or args.max_tokens),
-                           verbose=False).replace("<|im_end|>", "")
+                           verbose=False, **({"sampler": sampler} if sampler else {})).replace("<|im_end|>", "")
             reply = {"choices": [{"message": {"role": "assistant", "content": out}}]} if chat else {"text": out}
             data = json.dumps(reply, ensure_ascii=False).encode()
             self.send_response(200)
