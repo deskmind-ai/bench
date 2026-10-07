@@ -49,7 +49,10 @@ class ChatChoiceDecider:
         self.complete, self.samples, self.by = complete, samples, by
 
     def prompt(self, ctx: Context, opts: list[str]) -> list[dict]:
-        lines = [f"用户的任务：{ctx.goal}", "", "计划：", _status(ctx.parts), "",
+        lines = [f"用户的任务：{ctx.goal}", ""]
+        if ctx.workspace:
+            lines += ["工作目录现在的内容（以 / 结尾的是文件夹）：", ctx.workspace.rstrip(), ""]
+        lines += ["计划：", _status(ctx.parts), "",
                  "刚才那一件：" + {"met": "完成了", "unmet": "没完成", "not_started": "还没开始"}.get(ctx.outcome, ctx.outcome)
                  + (f"（{ctx.detail[:300]}）" if ctx.detail else "")]
         if ctx.signals:

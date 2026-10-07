@@ -1,0 +1,163 @@
+# T7 v0 (deskmind#60, #62), test3: 开放目标「按项目整理」，项目一目了然（对照：不用问）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-OG2-test3
+title: T7 test3：开放目标「按项目整理」，项目一目了然（对照：不用问）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  按项目整理这个文件夹：每个项目一个文件夹，用项目名命名。
+fixture: dyn_og2_test3
+seed:
+  pool: t7-test
+  seed: 7314
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+reference_plan:
+- id: f0
+  post: filed_0
+- id: f1
+  post: filed_1
+- id: f2
+  post: filed_2
+- id: f3
+  post: filed_3
+- id: f4
+  post: filed_4
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 青石
+- 青石/*
+- 北港
+- 北港/*
+- 青石-glacier-map-62.txt
+- 青石-航线图-12.log
+- 北港-reef-count-97.log
+- 北港-oak-survey-48.csv
+- 青石-kiln-temps-41.csv
+grade:
+  checkpoints:
+  - name: filed_0
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-glacier-map-62.txt
+          value: '青石-glacier-map-62.txt
+
+            '
+      - file_absent:
+          path: $WS/青石-glacier-map-62.txt
+  - name: filed_1
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-航线图-12.log
+          value: '青石-航线图-12.log
+
+            '
+      - file_absent:
+          path: $WS/青石-航线图-12.log
+  - name: filed_2
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/北港/北港-reef-count-97.log
+          value: '北港-reef-count-97.log
+
+            '
+      - file_absent:
+          path: $WS/北港-reef-count-97.log
+  - name: filed_3
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/北港/北港-oak-survey-48.csv
+          value: '北港-oak-survey-48.csv
+
+            '
+      - file_absent:
+          path: $WS/北港-oak-survey-48.csv
+  - name: filed_4
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/青石/青石-kiln-temps-41.csv
+          value: '青石-kiln-temps-41.csv
+
+            '
+      - file_absent:
+          path: $WS/青石-kiln-temps-41.csv
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 每个项目一个文件夹
+    writes:
+    - op: mkdir
+      dst: 青石
+    - op: mkdir
+      dst: 北港
+    - op: move
+      src: 青石-glacier-map-62.txt
+      dst: 青石/青石-glacier-map-62.txt
+    - op: move
+      src: 青石-航线图-12.log
+      dst: 青石/青石-航线图-12.log
+    - op: move
+      src: 北港-reef-count-97.log
+      dst: 北港/北港-reef-count-97.log
+    - op: move
+      src: 北港-oak-survey-48.csv
+      dst: 北港/北港-oak-survey-48.csv
+    - op: move
+      src: 青石-kiln-temps-41.csv
+      dst: 青石/青石-kiln-temps-41.csv
+oracle_effect:
+- |
+  mkdir -p 青石 北港
+  mv '青石-glacier-map-62.txt' 青石/
+  mv '青石-航线图-12.log' 青石/
+  mv '北港-reef-count-97.log' 北港/
+  mv '北港-oak-survey-48.csv' 北港/
+  mv '青石-kiln-temps-41.csv' 青石/
+blind_effect:
+- |
+  mkdir -p 青石 北港
+  mv '青石-glacier-map-62.txt' 青石/
+  mv '青石-航线图-12.log' 青石/
+  mv '北港-reef-count-97.log' 北港/
+  mv '北港-oak-survey-48.csv' 北港/
+  mv '青石-kiln-temps-41.csv' 青石/

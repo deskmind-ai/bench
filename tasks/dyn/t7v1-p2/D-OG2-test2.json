@@ -1,0 +1,58 @@
+{
+ "task": "D-OG2-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "将北港项目的文件归入同名文件夹，保持文件名不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-梯田测绘-63.csv",
+     "dst": "北港/北港-梯田测绘-63.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-蜂箱清点-29.log",
+     "dst": "北港/北港-蜂箱清点-29.log"
+    }
+   ]
+  },
+  {
+   "goal": "将青石项目的文件归入同名文件夹，保持文件名不变；其余文件和文件夹不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-quarry-photos-64.csv",
+     "dst": "青石/青石-quarry-photos-64.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-渡口排班-89.txt",
+     "dst": "青石/青石-渡口排班-89.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-航线图-35.txt",
+     "dst": "青石/青石-航线图-35.txt"
+    }
+   ]
+  }
+ ]
+}

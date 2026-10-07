@@ -1,0 +1,127 @@
+# T7 v0 (deskmind#60, #62), test2: 「第三件不用做了」（修补）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-UA2-test2
+title: T7 test2：「第三件不用做了」（修补）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  先新建文件夹 待处理，把 窑温曲线-44.md 放进去；然后把 orchard-yield-15.txt 改名为 已核-orchard-yield-15.txt；最后把 glacier-map-48.log 也放进 待处理。其他文件不要动。
+fixture: dyn_ua2_test2
+seed:
+  pool: t7-test
+  seed: 7206
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/潮汐表-75.txt
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    before_subgoal: part3
+  phase: late
+  effect:
+  - user_says: 第三件不用做了，glacier-map-48.log 留在原处
+  expect:
+    label: repair
+    accept: &id001
+    - repair
+    - replan
+    window: 1
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 待处理
+- 待处理/窑温曲线-44.md
+- 窑温曲线-44.md
+- orchard-yield-15.txt
+- 已核-orchard-yield-15.txt
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/待处理/窑温曲线-44.md
+          value: '窑温曲线-44.md
+
+            '
+      - file_absent:
+          path: $WS/窑温曲线-44.md
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-orchard-yield-15.txt
+          value: 'orchard-yield-15.txt
+
+            '
+      - file_absent:
+          path: $WS/orchard-yield-15.txt
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  guards:
+  - all_of:
+    - file_text_equals:
+        path: $WS/glacier-map-48.log
+        value: 'glacier-map-48.log
+
+          '
+    - file_absent:
+        path: $WS/待处理/glacier-map-48.log
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 待处理，把 窑温曲线-44.md 放进去
+    writes:
+    - op: mkdir
+      dst: 待处理
+    - op: move
+      src: 窑温曲线-44.md
+      dst: 待处理/窑温曲线-44.md
+  - goal: 把 orchard-yield-15.txt 改名为 已核-orchard-yield-15.txt
+    writes:
+    - op: move
+      src: orchard-yield-15.txt
+      dst: 已核-orchard-yield-15.txt
+  - goal: 把 glacier-map-48.log 也放进 待处理
+    writes:
+    - op: move
+      src: glacier-map-48.log
+      dst: 待处理/glacier-map-48.log
+oracle_effect:
+- |
+  mkdir -p '待处理'
+  mv '窑温曲线-44.md' '待处理/'
+  mv 'orchard-yield-15.txt' '已核-orchard-yield-15.txt'
+blind_effect:
+- |
+  mkdir -p '待处理'
+  mv '窑温曲线-44.md' '待处理/'
+  mv 'orchard-yield-15.txt' '已核-orchard-yield-15.txt'
+  mv 'glacier-map-48.log' '待处理/'

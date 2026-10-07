@@ -1,0 +1,45 @@
+{
+ "task": "D-PU2-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 inbox-old，并将第 1 个文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "inbox-old"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-83.log",
+     "dst": "inbox-old/glacier-map-83.log"
+    }
+   ]
+  },
+  {
+   "goal": "将第 6 个文件也放进 inbox-old",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-56.md",
+     "dst": "inbox-old/苔藓观察-56.md"
+    }
+   ]
+  },
+  {
+   "goal": "最后将第 4 个文件也放进 inbox-old",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "quarry-photos-92.csv",
+     "dst": "inbox-old/quarry-photos-92.csv"
+    }
+   ]
+  }
+ ]
+}

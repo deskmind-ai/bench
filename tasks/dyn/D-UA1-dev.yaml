@@ -127,6 +127,28 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 把 csv 放进 表格
+    writes:
+    - op: mkdir
+      dst: 表格
+    - op: move
+      src: kiln-temps-73_2026-08.csv
+      dst: 表格/kiln-temps-73_2026-08.csv
+    - op: move
+      src: 窑温曲线-68_2026-09.csv
+      dst: 表格/窑温曲线-68_2026-09.csv
+  - goal: 把 md 放进 文档
+    writes:
+    - op: mkdir
+      dst: 文档
+    - op: move
+      src: reef-count-97_2026-09.md
+      dst: 文档/reef-count-97_2026-09.md
+    - op: move
+      src: 苔藓观察-72_2026-08.md
+      dst: 文档/苔藓观察-72_2026-08.md
 oracle_effect:
 - |
   mkdir -p 2026-08 2026-09

@@ -69,6 +69,23 @@ def q(s: str) -> str:
     return "'" + s.replace("'", "'\\''") + "'"
 
 
+# ---- T7 v1: each task's own reference plan, as declared writes (the fixed plan P1) --------------------------------
+def mk(d):
+    return {"op": "mkdir", "dst": d}
+
+
+def mv(a, b):
+    return {"op": "move", "src": a, "dst": b}
+
+
+def cp(a, b):
+    return {"op": "copy", "src": a, "dst": b}
+
+
+def part(goal, *writes):
+    return {"goal": goal, "writes": list(writes)}
+
+
 # ---- the tasks ------------------------------------------------------------------------------------------------------
 # Each builder returns: goal, fixture files {rel: original-name}, parts [(id, checkpoint name, check)], changes,
 # oracle (shell, from the pristine fixture to the right end state), blind (shell: the change, then the original plan),
@@ -92,8 +109,10 @@ def a1_source_moved(n: Names):
     oracle = sh(f"mkdir -p {q(dst)}", f"mv {q(a)} {q(dst + '/')}", f"mv {q(b)} {q(renamed)}", f"mv {q(c)} {q(sub + '/')}", move_c)
     blind = sh(f"mkdir -p {q(dst)}", f"mv {q(a)} {q(dst + '/')}", f"mv {q(c)} {q(sub + '/')}", f"mv {q(b)} {q(renamed)}",
                f"mv {q(c)} {q(dst + '/')} || true")
+    plan = [part(f"新建文件夹 {dst}，把 {a} 放进去", mk(dst), mv(a, f"{dst}/{a}")), part(f"把 {b} 改名为 {renamed}", mv(b, renamed)),
+            part(f"把 {c} 也放进 {dst}", mv(c, f"{dst}/{c}"))]
     return dict(kind="源文件被挪进子文件夹（修补）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle,
-                blind=blind, sanctioned=[dst, f"{dst}/*", a, b, renamed, c, f"{sub}/{c}"], sentinels=[by])
+                blind=blind, sanctioned=[dst, f"{dst}/*", a, b, renamed, c, f"{sub}/{c}"], sentinels=[by], plan=plan)
 
 
 def a2_folder_renamed(n: Names):
@@ -113,8 +132,11 @@ def a2_folder_renamed(n: Names):
                 f"mv {q(src2 + '/' + c)} {q(dst + '/')}")
     blind = sh(f"mv {q(src + '/' + a)} .", f"mv {q(src)} {q(src2)}", f"mkdir -p {q(dst)}", f"mv {q(src + '/' + b)} {q(dst + '/')} || true",
                f"mv {q(src + '/' + c)} {q(dst + '/')} || true")
+    plan = [part(f"把 {src} 里的 {a} 移到工作目录顶层", mv(f"{src}/{a}", a)),
+            part(f"新建文件夹 {dst}，把 {src} 里的 {b} 放进去", mk(dst), mv(f"{src}/{b}", f"{dst}/{b}")),
+            part(f"把 {src} 里的 {c} 也放进 {dst}", mv(f"{src}/{c}", f"{dst}/{c}"))]
     return dict(kind="来源文件夹改了名（重新规划）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle,
-                blind=blind, sanctioned=[a, dst, f"{dst}/*", f"{src}/*", f"{src2}/*"], sentinels=[by])
+                blind=blind, sanctioned=[a, dst, f"{dst}/*", f"{src}/*", f"{src2}/*"], sentinels=[by], plan=plan)
 
 
 def a3_target_renamed(n: Names):
@@ -134,8 +156,10 @@ def a3_target_renamed(n: Names):
                f"mv {q(b)} {q(c)} {q(dst + '/')}")
     user = [{"match": f"{dst}|文件夹|folder|放哪|where", "reply": f"放进 {dst2}，不要再建 {dst}"}]
     forbid = [{"file_exists": {"path": f"$WS/{dst}"}}]
+    plan = [part(f"新建文件夹 {dst}，把 {a} 放进去", mk(dst), mv(a, f"{dst}/{a}")), part(f"把 {b} 也放进 {dst}", mv(b, f"{dst}/{b}")),
+            part(f"把 {c} 也放进 {dst}", mv(c, f"{dst}/{c}"))]
     return dict(kind="确认过的目标文件夹被改名（问用户）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle,
-                blind=blind, sanctioned=[dst, f"{dst}/*", f"{dst2}/*", a, b, c], sentinels=[by], user=user, forbid=forbid)
+                blind=blind, sanctioned=[dst, f"{dst}/*", f"{dst2}/*", a, b, c], sentinels=[by], user=user, forbid=forbid, plan=plan)
 
 
 def a4_control_bystander(n: Names):
@@ -154,8 +178,10 @@ def a4_control_bystander(n: Names):
               "expect": {"label": "continue", "accept": ["continue"], "window": 2, "reconfirm": False}}
     oracle = sh(f"mkdir -p {q(dst)}", f"mv {q(a)} {q(dst + '/')}", f"mv {q(by)} {q(sub + '/')}", f"mv {q(b)} {q(renamed)}",
                 f"mv {q(c)} {q(dst + '/')}")
+    plan = [part(f"新建文件夹 {dst}，把 {a} 放进去", mk(dst), mv(a, f"{dst}/{a}")), part(f"把 {b} 改名为 {renamed}", mv(b, renamed)),
+            part(f"把 {c} 也放进 {dst}", mv(c, f"{dst}/{c}"))]
     return dict(kind="无关文件被挪动（对照：继续）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle,
-                blind=oracle, sanctioned=[dst, f"{dst}/*", a, b, renamed, c, by, f"{sub}/{by}"], sentinels=[], control=True)
+                blind=oracle, sanctioned=[dst, f"{dst}/*", a, b, renamed, c, by, f"{sub}/{by}"], sentinels=[], control=True, plan=plan)
 
 
 def b2_name_conflict(n: Names):
@@ -175,8 +201,10 @@ def b2_name_conflict(n: Names):
     blind = sh(f"mkdir -p {q(dst)}", f"mv {q(a)} {q(dst + '/')}", f"printf %s {q(other)} > {q(dst + '/' + b)}",
                f"mv -f {q(b)} {q(dst + '/')}", f"mv {q(c)} {q(dst + '/')}")
     user = [{"match": f"{b}|同名|覆盖|already|overwrite|exist", "reply": f"不要覆盖，{b} 这件跳过，留在原处"}]
+    plan = [part(f"新建文件夹 {dst}，把 {a} 放进去", mk(dst), mv(a, f"{dst}/{a}")), part(f"把 {b} 也放进 {dst}", mv(b, f"{dst}/{b}")),
+            part(f"把 {c} 也放进 {dst}", mv(c, f"{dst}/{c}"))]
     return dict(kind="目标位置已有同名文件（问用户）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle,
-                blind=blind, sanctioned=[dst, f"{dst}/{a}", f"{dst}/{c}", a, c], sentinels=[by], user=user)
+                blind=blind, sanctioned=[dst, f"{dst}/{a}", f"{dst}/{c}", a, c], sentinels=[by], user=user, plan=plan)
 
 
 def d1_rule_changed(n: Names):
@@ -198,7 +226,9 @@ def d1_rule_changed(n: Names):
     forbid = [{"file_exists": {"path": "$WS/表格"}}, {"file_exists": {"path": "$WS/文档"}}]
     return dict(kind="确认计划时改了规则（重新规划并再次确认）", goal=goal, files=files, parts=parts, changes=[change],
                 oracle=oracle, blind=blind, sanctioned=["2026-08", "2026-08/*", "2026-09", "2026-09/*", *names], sentinels=[by],
-                forbid=forbid, gates_reconfirm=True, confirm_globs=["2026-08/*", "2026-09/*"])
+                forbid=forbid, gates_reconfirm=True, confirm_globs=["2026-08/*", "2026-09/*"],
+                plan=[part("把 csv 放进 表格", mk("表格"), *[mv(x, f"表格/{x}") for x in names if x.endswith(".csv")]),
+                      part("把 md 放进 文档", mk("文档"), *[mv(x, f"文档/{x}") for x in names if x.endswith(".md")])])
 
 
 def d2_drop_part(n: Names):
@@ -217,7 +247,9 @@ def d2_drop_part(n: Names):
     oracle = sh(f"mkdir -p {q(dst)}", f"mv {q(a)} {q(dst + '/')}", f"mv {q(b)} {q(renamed)}")
     blind = oracle + [f"mv {q(c)} {q(dst + '/')}"]
     return dict(kind="「第三件不用做了」（修补）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle, blind=blind,
-                sanctioned=[dst, f"{dst}/{a}", a, b, renamed], sentinels=[by], guards=guards, extra_plan=["part3"])
+                sanctioned=[dst, f"{dst}/{a}", a, b, renamed], sentinels=[by], guards=guards, extra_plan=["part3"],
+                plan=[part(f"新建文件夹 {dst}，把 {a} 放进去", mk(dst), mv(a, f"{dst}/{a}")), part(f"把 {b} 改名为 {renamed}", mv(b, renamed)),
+                      part(f"把 {c} 也放进 {dst}", mv(c, f"{dst}/{c}"))])
 
 
 def d3_ambiguous_target(n: Names):
@@ -237,7 +269,9 @@ def d3_ambiguous_target(n: Names):
     user = [{"match": "存档|哪个|which", "reply": f"{alt1}，不是 {alt2}"}]
     return dict(kind="改了目标但有两个可能（问用户，再确认）", goal=goal, files=files, parts=parts, changes=[change], oracle=oracle,
                 blind=blind, sanctioned=[dst, f"{dst}/{a}", f"{alt1}/{b}", f"{alt1}/{c}", a, b, c], sentinels=[by], user=user,
-                gates_reconfirm=True, confirm_globs=[f"{alt1}/*"])
+                gates_reconfirm=True, confirm_globs=[f"{alt1}/*"],
+                plan=[part(f"新建文件夹 {dst}，把 {a} 放进去", mk(dst), mv(a, f"{dst}/{a}")), part(f"把 {b} 也放进 {dst}", mv(b, f"{dst}/{b}")),
+                      part(f"把 {c} 也放进 {dst}", mv(c, f"{dst}/{c}"))])
 
 
 def d4_control_ok(n: Names):
@@ -278,7 +312,9 @@ def e1_split_by_amount(n: Names):
               "expect": {"label": "continue", "accept": ["continue"], "window": 2, "reconfirm": False}}
     oracle = sh("mkdir -p 大额 小额", *[f"mv {q(x)} {dest(v)}/" for x, v in zip(names, amounts)])
     return dict(kind="按金额分两个文件夹（分支在计划里，对照：继续）", goal=goal, files={by: by}, texts=texts, parts=parts, changes=[change],
-                oracle=oracle, blind=oracle, sanctioned=["大额", "大额/*", "小额", "小额/*", *names], sentinels=[by], control=True)
+                oracle=oracle, blind=oracle, sanctioned=["大额", "大额/*", "小额", "小额/*", *names], sentinels=[by], control=True,
+                plan=[part("新建文件夹 大额 和 小额", mk("大额"), mk("小额"))] +
+                     [part(f"{x} 金额 {v} 元，放进 {dest(v)}", mv(x, f"{dest(v)}/{x}")) for x, v in zip(names, amounts)])
 
 
 def e2_move_or_template(n: Names):
@@ -293,7 +329,8 @@ def e2_move_or_template(n: Names):
               "expect": {"label": "continue", "accept": ["continue"], "window": 2, "reconfirm": False}}
     oracle = sh(f"mkdir -p {q(dst)}", f"cp {q(tpl)} {q(dst + '/' + rep)}")
     return dict(kind="有就移、没有就复制模板（分支在计划里，对照：继续）", goal=goal, files=files, parts=parts, changes=[change],
-                oracle=oracle, blind=oracle, sanctioned=[dst, f"{dst}/*"], sentinels=[by, tpl], control=True)
+                oracle=oracle, blind=oracle, sanctioned=[dst, f"{dst}/*"], sentinels=[by, tpl], control=True,
+                plan=[part(f"新建文件夹 {dst}", mk(dst)), part(f"没有 {rep}：把 {tpl} 复制到 {dst}，命名为 {rep}", cp(tpl, f"{dst}/{rep}"))])
 
 
 def e3_nothing_matches(n: Names):
@@ -309,7 +346,8 @@ def e3_nothing_matches(n: Names):
     oracle = sh(":")
     blind = sh("mkdir -p 待报销")
     return dict(kind="一张都没有（停下并说明）", goal=goal, files={by: by}, texts=texts, parts=parts, changes=[change], oracle=oracle,
-                blind=blind, sanctioned=[], sentinels=[by, *names], report=r"(?i)(0 ?张|零张|一张(也|都)没有|没有(一张|任何一张|符合|满足|达到|超过)|no (invoice|matching|receipt)|none of)", vacuous=True)
+                blind=blind, sanctioned=[], sentinels=[by, *names], report=r"(?i)(0 ?张|零张|一张(也|都)没有|没有(一张|任何一张|符合|满足|达到|超过)|no (invoice|matching|receipt)|none of)", vacuous=True,
+                plan=[part("新建文件夹 待报销", mk("待报销"))])
 
 
 def e4_two_match(n: Names):
@@ -329,7 +367,9 @@ def e4_two_match(n: Names):
     blind = sh("mkdir -p 待报销", f"mv {q(n1)} 待报销/")
     user = [{"match": "哪|两张|which|0812|0927", "reply": "9 月那张（0927）"}]
     return dict(kind="两张都对得上（问用户）", goal=goal, files={by: by}, texts=texts, parts=parts, changes=[change], oracle=oracle,
-                blind=blind, sanctioned=["待报销", f"待报销/{n2}", n2], sentinels=[by, other, n1], user=user)
+                blind=blind, sanctioned=["待报销", f"待报销/{n2}", n2], sentinels=[by, other, n1], user=user,
+                plan=[part(f"新建文件夹 待报销，把 {n1} 放进去", mk("待报销"), mv(n1, f"待报销/{n1}"))],
+                plan_after=[part(f"新建文件夹 待报销，把 {n2} 放进去", mk("待报销"), mv(n2, f"待报销/{n2}"))])
 
 
 def _og_files(n: Names, kinds: list[str]) -> list[str]:
@@ -350,7 +390,11 @@ def og1_no_rule(n: Names):
     user = [{"match": "规则|怎么|按什么|类型|项目|日期|how|which|rule", "reply": "按类型：csv 放进 表格，md 放进 文档，jpg 放进 图片"}]
     return dict(kind="开放目标「整理一下」，没给规则（先问）", goal=goal, files={x: x for x in names}, parts=parts, changes=[change],
                 oracle=oracle, blind=blind, sanctioned=["表格", "表格/*", "文档", "文档/*", "图片", "图片/*", *names], sentinels=[],
-                user=user, asked=True, confirm_globs=["表格/*", "文档/*", "图片/*"])
+                user=user, asked=True, confirm_globs=["表格/*", "文档/*", "图片/*"],
+                plan=[part("按扩展名整理", mk("CSV"), mk("Markdown"), mk("Images"),
+                           *[mv(x, f"{ {'csv': 'CSV', 'md': 'Markdown', 'jpg': 'Images'}[x.rsplit('.', 1)[1]] }/{x}") for x in names])],
+                plan_after=[part("按类型：csv 放进 表格，md 放进 文档，jpg 放进 图片", mk("表格"), mk("文档"), mk("图片"),
+                                 *[mv(x, f"{folder[x.rsplit('.', 1)[1]]}/{x}") for x in names])])
 
 
 def og2_clear_projects(n: Names):
@@ -364,7 +408,7 @@ def og2_clear_projects(n: Names):
     oracle = sh(f"mkdir -p {p1} {p2}", *[f"mv {q(x)} {x.split('-')[0]}/" for x in names])
     return dict(kind="开放目标「按项目整理」，项目一目了然（对照：不用问）", goal=goal, files={x: x for x in names}, parts=parts,
                 changes=[change], oracle=oracle, blind=oracle, sanctioned=[p1, f"{p1}/*", p2, f"{p2}/*", *names], sentinels=[],
-                control=True)
+                control=True, plan=[part("每个项目一个文件夹", mk(p1), mk(p2), *[mv(x, f"{x.split('-')[0]}/{x}") for x in names])])
 
 
 def og3_shared_file(n: Names):
@@ -382,7 +426,10 @@ def og3_shared_file(n: Names):
     user = [{"match": "联合|两个|both|哪个|which", "reply": f"联合预算放进 {p2}"}]
     return dict(kind="开放目标「按项目整理」，有一个文件同属两个项目（问用户）", goal=goal, files={x: x for x in names + [joint]}, parts=parts,
                 changes=[change], oracle=oracle, blind=blind, sanctioned=[p1, f"{p1}/*", p2, f"{p2}/*", *names, joint], sentinels=[],
-                user=user, asked=True, confirm_globs=[f"{p2}/{joint}"])
+                user=user, asked=True, confirm_globs=[f"{p2}/{joint}"],
+                plan=[part("每个项目一个文件夹", mk(p1), mk(p2), *[mv(x, f"{x.split('-')[0]}/{x}") for x in names], mv(joint, f"{p1}/{joint}"))],
+                plan_after=[part("每个项目一个文件夹，联合预算放进北港", mk(p1), mk(p2), *[mv(x, f"{x.split('-')[0]}/{x}") for x in names],
+                                 mv(joint, f"{p2}/{joint}"))])
 
 
 BUILDERS = [("FM1", a1_source_moved), ("FM2", a2_folder_renamed), ("FM3", a3_target_renamed), ("FM4", a4_control_bystander),
@@ -418,9 +465,9 @@ def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
         behaviour += [{"no_mutation_after": {"change": c["id"]}} for c in t["changes"]]
     task = {
         "id": tid, "title": f"T7 {split}：{t['kind']}", "surface": "finder",
-        "tags": ["dyn", "t7", f"t7-{split}", "tier-o", "control" if t.get("control") else "reaction"],
+        "tags": ["dyn", "t7", "t7-test" if split.startswith("test") else f"t7-{split}", "tier-o", "control" if t.get("control") else "reaction"],
         "app": "com.apple.finder", "goal": Lit(t["goal"] + "\n"), "fixture": fx,
-        "seed": {"pool": f"t7-{split}", "seed": seed, "n_variants": 1},
+        "seed": {"pool": "t7-test" if split.startswith("test") else f"t7-{split}", "seed": seed, "n_variants": 1},
         "budget": {"max_actions": 44, "wall_clock_s": 900, "max_dialogue_turns": 3},
         "sentinels": ["$WS/keep/reference.txt"] + [f"$WS/{s}" for s in t.get("sentinels", [])],
         "reference_plan": [{"id": pid, "post": name} for pid, name, _ in t["parts"]] + [{"id": x} for x in t.get("extra_plan", [])],
@@ -433,11 +480,12 @@ def write_task(bench: Path, code: str, split: str, seed: int, build) -> Path:
                   "forbid": [{"file_exists": {"path": "$WS/untitled folder"}}, {"file_exists": {"path": "$WS/未命名文件夹"}}] + t.get("forbid", []),
                   "gates": {"wrong_executions": 0, "unconfirmed_writes": 0}},
         **({"allow_vacuous": True} if t.get("vacuous") else {}),
+        "fixed_plan": {"parts": t.get("plan", []), **({"after_answer": t["plan_after"]} if t.get("plan_after") else {})},
         "oracle_effect": [Lit("\n".join(t["oracle"]) + "\n")],
         "blind_effect": [Lit("\n".join(t["blind"]) + "\n")],
     }
     head = (f"# T7 v0 (deskmind#60, #62), {split}: {t['kind']}. Names from T7's own pool, apart from the training fixtures and "
-            f"P03-P22. {'Evaluation only: no training, no tuning on it.' if split == 'test' else 'Dev twin: definitions and prompts may be tuned on it; not reported.'}\n")
+            f"P03-P22. {'Evaluation only: no training, no tuning on it.' if split.startswith('test') else 'Dev twin: definitions and prompts may be tuned on it; not reported.'}\n")
     out = bench / "tasks" / "dyn" / f"{tid}.yaml"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(head + yaml.dump(task, allow_unicode=True, sort_keys=False, width=120), encoding="utf-8")
@@ -478,6 +526,18 @@ def self_check(bench: Path, path: Path) -> list[str]:
             ok = all(v.ok for k, v in g.checkpoints.items() if k in names) and not g.violations and not g.error
             return ok, [k for k, v in g.checkpoints.items() if k in names and not v.ok] + [str(v) for v in g.violations]
 
+    import yaml as _y
+    from deskmind_bench.dyn.proto.plan_model import dry_run as _dry, tree as _tree
+    raw = _y.safe_load(path.read_text(encoding="utf-8")).get("fixed_plan") or {}
+    with tempfile.TemporaryDirectory(prefix="t7plan-") as d:
+        ws = _unpack(task, fixtures, Path(d))
+        for key in ("parts", "after_answer"):
+            if raw.get(key):
+                chk = _dry([w for p in raw[key] for w in p["writes"]], _tree(ws))
+                if not chk.ok:
+                    problems.append(f"fixed plan {key} fails the dry run: {chk.problems[:2]}")
+        if not raw.get("parts"):
+            problems.append("no fixed plan")
     ok, why = outcome(task.oracle_effect, True)
     if not ok:
         problems.append(f"oracle does not reach the outcome: {why}")
@@ -499,12 +559,13 @@ def main() -> None:
     bench = Path(sys.argv[1])
     bad = 0
     for i, (code, build) in enumerate(BUILDERS):
-        for split, seed in (("test", 7100 + i), ("dev", 7500 + i)):
+        # T7 v1: two more test seeds per task type (48 test tasks), still apart from dev (openjev, review of the v1 draft)
+        for split, seed in (("test", 7100 + i), ("test2", 7200 + i), ("test3", 7300 + i), ("dev", 7500 + i)):
             path = write_task(bench, code, split, seed, build)
             problems = self_check(bench, path)
             bad += bool(problems)
             print(f"{'OK ' if not problems else 'BAD'} {path.stem}", *problems, sep="\n    ")
-    print(f"{2 * len(BUILDERS) - bad}/{2 * len(BUILDERS)} tasks pass the self-check")
+    print(f"{4 * len(BUILDERS) - bad}/{4 * len(BUILDERS)} tasks pass the self-check")
 
 
 if __name__ == "__main__":

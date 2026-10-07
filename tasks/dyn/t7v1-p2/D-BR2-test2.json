@@ -1,0 +1,23 @@
+{
+ "task": "D-BR2-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建 shelf 文件夹，并因缺少季报终稿而复制模板到其中，命名为 季报-终稿.md；其他文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "shelf"
+    },
+    {
+     "class": "write",
+     "op": "copy",
+     "src": "模板/季报模板.md",
+     "dst": "shelf/季报-终稿.md"
+    }
+   ]
+  }
+ ]
+}

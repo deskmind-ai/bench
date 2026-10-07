@@ -1,0 +1,141 @@
+# T7 v0 (deskmind#60, #62), test2: 改了目标但有两个可能（问用户，再确认）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-UA3-test2
+title: T7 test2：改了目标但有两个可能（问用户，再确认）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- reaction
+app: com.apple.finder
+goal: |
+  先新建文件夹 存档盒，把 glacier-map-34.md 放进去；然后把 梯田测绘-55.log 也放进 存档盒；最后把 reef-count-64.txt 也放进 存档盒。其他文件不要动。
+fixture: dyn_ua3_test2
+seed:
+  pool: t7-test
+  seed: 7207
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/茶园账本-57.txt
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_to_alt
+- id: part3
+  post: part3_to_alt
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    before_subgoal: part2
+  phase: mid
+  effect:
+  - user_says: 剩下的放到存档那边吧，别放 存档盒 了
+  expect:
+    label: ask
+    accept: &id001
+    - ask
+    window: 1
+    reconfirm: true
+user_script:
+- match: 存档|哪个|which
+  reply: 存档，不是 存档-旧
+sanctioned_writes:
+- 存档盒
+- 存档盒/glacier-map-34.md
+- 存档/梯田测绘-55.log
+- 存档/reef-count-64.txt
+- glacier-map-34.md
+- 梯田测绘-55.log
+- reef-count-64.txt
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/存档盒/glacier-map-34.md
+          value: 'glacier-map-34.md
+
+            '
+      - file_absent:
+          path: $WS/glacier-map-34.md
+  - name: part2_to_alt
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/存档/梯田测绘-55.log
+          value: '梯田测绘-55.log
+
+            '
+      - file_absent:
+          path: $WS/梯田测绘-55.log
+      - file_absent:
+          path: $WS/存档-旧/梯田测绘-55.log
+  - name: part3_to_alt
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/存档/reef-count-64.txt
+          value: 'reef-count-64.txt
+
+            '
+      - file_absent:
+          path: $WS/reef-count-64.txt
+      - file_absent:
+          path: $WS/存档-旧/reef-count-64.txt
+  - name: confirmed_before_write[0]
+    process: true
+    weight: 0
+    check:
+      confirmed_before_write:
+        target_glob: 存档/*
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 存档盒，把 glacier-map-34.md 放进去
+    writes:
+    - op: mkdir
+      dst: 存档盒
+    - op: move
+      src: glacier-map-34.md
+      dst: 存档盒/glacier-map-34.md
+  - goal: 把 梯田测绘-55.log 也放进 存档盒
+    writes:
+    - op: move
+      src: 梯田测绘-55.log
+      dst: 存档盒/梯田测绘-55.log
+  - goal: 把 reef-count-64.txt 也放进 存档盒
+    writes:
+    - op: move
+      src: reef-count-64.txt
+      dst: 存档盒/reef-count-64.txt
+oracle_effect:
+- |
+  mkdir -p '存档盒'
+  mv 'glacier-map-34.md' '存档盒/'
+  mv '梯田测绘-55.log' 'reef-count-64.txt' '存档/'
+blind_effect:
+- |
+  mkdir -p '存档盒'
+  mv 'glacier-map-34.md' '存档盒/'
+  mv '梯田测绘-55.log' 'reef-count-64.txt' '存档盒/'

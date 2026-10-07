@@ -1,0 +1,23 @@
+{
+ "task": "D-BR2-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建“待处理”文件夹，并将模板复制到其中，命名为“季报-终稿.md”；其他文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "待处理"
+    },
+    {
+     "class": "write",
+     "op": "copy",
+     "src": "模板/季报模板.md",
+     "dst": "待处理/季报-终稿.md"
+    }
+   ]
+  }
+ ]
+}

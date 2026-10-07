@@ -1,0 +1,52 @@
+{
+ "task": "D-UA1-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "把两个 csv 文件放进“表格”文件夹",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "oak-survey-67_2026-09.csv",
+     "dst": "表格/oak-survey-67_2026-09.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "蜂箱清点-72_2026-08.csv",
+     "dst": "表格/蜂箱清点-72_2026-08.csv"
+    }
+   ]
+  },
+  {
+   "goal": "把两个 md 文件放进“文档”文件夹，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-61_2026-08.md",
+     "dst": "文档/kiln-temps-61_2026-08.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "潮汐表-62_2026-09.md",
+     "dst": "文档/潮汐表-62_2026-09.md"
+    }
+   ]
+  }
+ ]
+}

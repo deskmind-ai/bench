@@ -1,0 +1,45 @@
+{
+ "task": "D-FM4-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 暗房，并把编号 5 的文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "暗房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-63.md",
+     "dst": "暗房/reef-count-63.md"
+    }
+   ]
+  },
+  {
+   "goal": "把编号 1 的文件改名为 已核-glacier-map-50.log",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-50.log",
+     "dst": "已核-glacier-map-50.log"
+    }
+   ]
+  },
+  {
+   "goal": "把编号 2 的文件也放进 暗房",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-67.log",
+     "dst": "暗房/harbor-tides-67.log"
+    }
+   ]
+  }
+ ]
+}

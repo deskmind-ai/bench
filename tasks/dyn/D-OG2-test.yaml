@@ -122,6 +122,29 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 每个项目一个文件夹
+    writes:
+    - op: mkdir
+      dst: 青石
+    - op: mkdir
+      dst: 北港
+    - op: move
+      src: 青石-窑温曲线-72.log
+      dst: 青石/青石-窑温曲线-72.log
+    - op: move
+      src: 青石-oak-survey-59.log
+      dst: 青石/青石-oak-survey-59.log
+    - op: move
+      src: 北港-kiln-temps-13.md
+      dst: 北港/北港-kiln-temps-13.md
+    - op: move
+      src: 北港-潮汐表-15.txt
+      dst: 北港/北港-潮汐表-15.txt
+    - op: move
+      src: 青石-渡口排班-34.log
+      dst: 青石/青石-渡口排班-34.log
 oracle_effect:
 - |
   mkdir -p 青石 北港

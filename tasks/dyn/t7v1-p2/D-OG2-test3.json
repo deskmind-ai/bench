@@ -1,0 +1,58 @@
+{
+ "task": "D-OG2-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "建立北港项目文件夹，将该项目的文件移入。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-oak-survey-48.csv",
+     "dst": "北港/北港-oak-survey-48.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-reef-count-97.log",
+     "dst": "北港/北港-reef-count-97.log"
+    }
+   ]
+  },
+  {
+   "goal": "建立青石项目文件夹，将该项目的文件移入。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-glacier-map-62.txt",
+     "dst": "青石/青石-glacier-map-62.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-kiln-temps-41.csv",
+     "dst": "青石/青石-kiln-temps-41.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-航线图-12.log",
+     "dst": "青石/青石-航线图-12.log"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,45 @@
+{
+ "task": "D-FM4-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 inbox-old，并把指定日志文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "inbox-old"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-15.log",
+     "dst": "inbox-old/航线图-15.log"
+    }
+   ]
+  },
+  {
+   "goal": "将指定产量文件改名为 已核-orchard-yield-65.txt",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "orchard-yield-65.txt",
+     "dst": "已核-orchard-yield-65.txt"
+    }
+   ]
+  },
+  {
+   "goal": "最后把指定地图文件也放进 inbox-old",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-64.txt",
+     "dst": "inbox-old/glacier-map-64.txt"
+    }
+   ]
+  }
+ ]
+}

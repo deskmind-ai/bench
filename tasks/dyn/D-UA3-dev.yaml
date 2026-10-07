@@ -110,6 +110,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 暗房，把 glacier-map-53.log 放进去
+    writes:
+    - op: mkdir
+      dst: 暗房
+    - op: move
+      src: glacier-map-53.log
+      dst: 暗房/glacier-map-53.log
+  - goal: 把 窑温曲线-55.log 也放进 暗房
+    writes:
+    - op: move
+      src: 窑温曲线-55.log
+      dst: 暗房/窑温曲线-55.log
+  - goal: 把 quarry-photos-91.csv 也放进 暗房
+    writes:
+    - op: move
+      src: quarry-photos-91.csv
+      dst: 暗房/quarry-photos-91.csv
 oracle_effect:
 - |
   mkdir -p '暗房'

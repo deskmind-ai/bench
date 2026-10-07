@@ -1,0 +1,45 @@
+{
+ "task": "D-FM3-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹“暗房”，并将文件4放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "暗房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-36.log",
+     "dst": "暗房/kiln-temps-36.log"
+    }
+   ]
+  },
+  {
+   "goal": "将文件6也放进“暗房”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "茶园账本-13.txt",
+     "dst": "暗房/茶园账本-13.txt"
+    }
+   ]
+  },
+  {
+   "goal": "最后将文件1也放进“暗房”，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-16.md",
+     "dst": "暗房/harbor-tides-16.md"
+    }
+   ]
+  }
+ ]
+}

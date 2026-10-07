@@ -113,6 +113,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 已整理，把 loom-pattern-39.log 放进去
+    writes:
+    - op: mkdir
+      dst: 已整理
+    - op: move
+      src: loom-pattern-39.log
+      dst: 已整理/loom-pattern-39.log
+  - goal: 把 kiln-temps-86.md 改名为 已核-kiln-temps-86.md
+    writes:
+    - op: move
+      src: kiln-temps-86.md
+      dst: 已核-kiln-temps-86.md
+  - goal: 把 航线图-98.txt 也放进 已整理
+    writes:
+    - op: move
+      src: 航线图-98.txt
+      dst: 已整理/航线图-98.txt
 oracle_effect:
 - |
   mkdir -p '已整理'

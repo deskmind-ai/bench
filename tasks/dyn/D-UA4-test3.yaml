@@ -1,0 +1,131 @@
+# T7 v0 (deskmind#60, #62), test3: 「好的，你继续」（对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-UA4-test3
+title: T7 test3：「好的，你继续」（对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  先新建文件夹 温室，把 loom-pattern-86.md 放进去；然后把 潮汐表-34.txt 改名为 已核-潮汐表-34.txt；最后把 茶园账本-91.csv 也放进 温室。其他文件不要动。
+fixture: dyn_ua4_test3
+seed:
+  pool: t7-test
+  seed: 7308
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/oak-survey-19.csv
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+  post: part3_move
+changes:
+- id: c1
+  type: user_amend
+  trigger:
+    before_subgoal: part3
+  phase: late
+  effect:
+  - user_says: 好的，你继续
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 1
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- 温室
+- 温室/loom-pattern-86.md
+- loom-pattern-86.md
+- 潮汐表-34.txt
+- 已核-潮汐表-34.txt
+- 茶园账本-91.csv
+- 温室/茶园账本-91.csv
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/温室/loom-pattern-86.md
+          value: 'loom-pattern-86.md
+
+            '
+      - file_absent:
+          path: $WS/loom-pattern-86.md
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-潮汐表-34.txt
+          value: '潮汐表-34.txt
+
+            '
+      - file_absent:
+          path: $WS/潮汐表-34.txt
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/温室/茶园账本-91.csv
+          value: '茶园账本-91.csv
+
+            '
+      - file_absent:
+          path: $WS/茶园账本-91.csv
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 1
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 温室，把 loom-pattern-86.md 放进去
+    writes:
+    - op: mkdir
+      dst: 温室
+    - op: move
+      src: loom-pattern-86.md
+      dst: 温室/loom-pattern-86.md
+  - goal: 把 潮汐表-34.txt 改名为 已核-潮汐表-34.txt
+    writes:
+    - op: move
+      src: 潮汐表-34.txt
+      dst: 已核-潮汐表-34.txt
+  - goal: 把 茶园账本-91.csv 也放进 温室
+    writes:
+    - op: move
+      src: 茶园账本-91.csv
+      dst: 温室/茶园账本-91.csv
+oracle_effect:
+- |
+  mkdir -p '温室'
+  mv 'loom-pattern-86.md' '温室/'
+  mv '潮汐表-34.txt' '已核-潮汐表-34.txt'
+  mv '茶园账本-91.csv' '温室/'
+blind_effect:
+- |
+  mkdir -p '温室'
+  mv 'loom-pattern-86.md' '温室/'
+  mv '潮汐表-34.txt' '已核-潮汐表-34.txt'
+  mv '茶园账本-91.csv' '温室/'

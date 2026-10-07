@@ -113,6 +113,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 库房，把 潮汐表-22.log 放进去
+    writes:
+    - op: mkdir
+      dst: 库房
+    - op: move
+      src: 潮汐表-22.log
+      dst: 库房/潮汐表-22.log
+  - goal: 把 kiln-temps-67.csv 改名为 已核-kiln-temps-67.csv
+    writes:
+    - op: move
+      src: kiln-temps-67.csv
+      dst: 已核-kiln-temps-67.csv
+  - goal: 把 航线图-30.log 也放进 库房
+    writes:
+    - op: move
+      src: 航线图-30.log
+      dst: 库房/航线图-30.log
 oracle_effect:
 - |
   mkdir -p '库房'

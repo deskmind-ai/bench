@@ -1,0 +1,52 @@
+{
+ "task": "D-UA1-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "创建表格文件夹，并放入两个 csv 文件。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-73_2026-08.csv",
+     "dst": "表格/kiln-temps-73_2026-08.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-68_2026-09.csv",
+     "dst": "表格/窑温曲线-68_2026-09.csv"
+    }
+   ]
+  },
+  {
+   "goal": "创建文档文件夹，并放入两个 md 文件，其他文件保持不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-97_2026-09.md",
+     "dst": "文档/reef-count-97_2026-09.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-72_2026-08.md",
+     "dst": "文档/苔藓观察-72_2026-08.md"
+    }
+   ]
+  }
+ ]
+}

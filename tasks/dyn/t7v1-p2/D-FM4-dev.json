@@ -1,0 +1,45 @@
+{
+ "task": "D-FM4-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 已整理，并放入指定日志文件",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "已整理"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "loom-pattern-39.log",
+     "dst": "已整理/loom-pattern-39.log"
+    }
+   ]
+  },
+  {
+   "goal": "将指定 Markdown 文件改名，加上“已核-”前缀",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-86.md",
+     "dst": "已核-kiln-temps-86.md"
+    }
+   ]
+  },
+  {
+   "goal": "将指定航线图文件放入 已整理，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-98.txt",
+     "dst": "已整理/航线图-98.txt"
+    }
+   ]
+  }
+ ]
+}

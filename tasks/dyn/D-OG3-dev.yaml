@@ -135,6 +135,51 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 每个项目一个文件夹
+    writes:
+    - op: mkdir
+      dst: 青石
+    - op: mkdir
+      dst: 北港
+    - op: move
+      src: 青石-苔藓观察-74.md
+      dst: 青石/青石-苔藓观察-74.md
+    - op: move
+      src: 北港-reef-count-37.log
+      dst: 北港/北港-reef-count-37.log
+    - op: move
+      src: 青石-quarry-photos-27.log
+      dst: 青石/青石-quarry-photos-27.log
+    - op: move
+      src: 北港-渡口排班-98.log
+      dst: 北港/北港-渡口排班-98.log
+    - op: move
+      src: 青石北港-联合预算-37.csv
+      dst: 青石/青石北港-联合预算-37.csv
+  after_answer:
+  - goal: 每个项目一个文件夹，联合预算放进北港
+    writes:
+    - op: mkdir
+      dst: 青石
+    - op: mkdir
+      dst: 北港
+    - op: move
+      src: 青石-苔藓观察-74.md
+      dst: 青石/青石-苔藓观察-74.md
+    - op: move
+      src: 北港-reef-count-37.log
+      dst: 北港/北港-reef-count-37.log
+    - op: move
+      src: 青石-quarry-photos-27.log
+      dst: 青石/青石-quarry-photos-27.log
+    - op: move
+      src: 北港-渡口排班-98.log
+      dst: 北港/北港-渡口排班-98.log
+    - op: move
+      src: 青石北港-联合预算-37.csv
+      dst: 北港/青石北港-联合预算-37.csv
 oracle_effect:
 - |
   mkdir -p 青石 北港

@@ -1,0 +1,45 @@
+{
+ "task": "D-FM2-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "先将指定的蜂箱清点文件移到工作目录顶层",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "温室/蜂箱清点-78.csv",
+     "dst": "蜂箱清点-78.csv"
+    }
+   ]
+  },
+  {
+   "goal": "然后新建 inbox-old 文件夹，并将指定的温度记录文件移入其中",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "inbox-old"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "温室/kiln-temps-25.md",
+     "dst": "inbox-old/kiln-temps-25.md"
+    }
+   ]
+  },
+  {
+   "goal": "最后将指定的果园产量文件也移入 inbox-old，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "温室/orchard-yield-73.csv",
+     "dst": "inbox-old/orchard-yield-73.csv"
+    }
+   ]
+  }
+ ]
+}

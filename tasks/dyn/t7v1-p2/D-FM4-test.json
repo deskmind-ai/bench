@@ -1,0 +1,45 @@
+{
+ "task": "D-FM4-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建库房文件夹，并把指定的潮汐表文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "库房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "潮汐表-22.log",
+     "dst": "库房/潮汐表-22.log"
+    }
+   ]
+  },
+  {
+   "goal": "将指定的温度记录文件改名为已核-kiln-temps-67.csv",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-67.csv",
+     "dst": "已核-kiln-temps-67.csv"
+    }
+   ]
+  },
+  {
+   "goal": "最后把指定的航线图文件也放进库房",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-30.log",
+     "dst": "库房/航线图-30.log"
+    }
+   ]
+  }
+ ]
+}

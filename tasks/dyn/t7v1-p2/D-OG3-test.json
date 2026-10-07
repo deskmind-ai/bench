@@ -1,0 +1,135 @@
+{
+ "task": "D-OG3-test",
+ "model": "openai/gpt-6.1-sol",
+ "ask": "7 号文件应单独作为一个项目，还是归入 3–4 号或 5–6 号文件所属的项目？",
+ "after_answer": [
+  {
+   "goal": "创建“北港”项目文件夹并归入对应文件。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-kiln-temps-23.txt",
+     "dst": "北港/北港-kiln-temps-23.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-quarry-photos-85.txt",
+     "dst": "北港/北港-quarry-photos-85.txt"
+    }
+   ]
+  },
+  {
+   "goal": "创建“青石”项目文件夹并归入对应文件。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-loom-pattern-22.txt",
+     "dst": "青石/青石-loom-pattern-22.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-reef-count-95.csv",
+     "dst": "青石/青石-reef-count-95.csv"
+    }
+   ]
+  },
+  {
+   "goal": "将联合项目单独归入“青石北港”文件夹，保留原有文件夹及其内容不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石北港-联合预算-57.csv",
+     "dst": "青石北港/青石北港-联合预算-57.csv"
+    }
+   ]
+  }
+ ],
+ "parts": [
+  {
+   "goal": "创建“北港”项目文件夹并归入对应文件。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-kiln-temps-23.txt",
+     "dst": "北港/北港-kiln-temps-23.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-quarry-photos-85.txt",
+     "dst": "北港/北港-quarry-photos-85.txt"
+    }
+   ]
+  },
+  {
+   "goal": "创建“青石”项目文件夹并归入对应文件。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-loom-pattern-22.txt",
+     "dst": "青石/青石-loom-pattern-22.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-reef-count-95.csv",
+     "dst": "青石/青石-reef-count-95.csv"
+    }
+   ]
+  },
+  {
+   "goal": "将联合项目单独归入“青石北港”文件夹，保留原有文件夹及其内容不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石北港-联合预算-57.csv",
+     "dst": "青石北港/青石北港-联合预算-57.csv"
+    }
+   ]
+  }
+ ]
+}

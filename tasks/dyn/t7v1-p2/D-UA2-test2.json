@@ -1,0 +1,45 @@
+{
+ "task": "D-UA2-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹“待处理”，把文件6放进去。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "待处理"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-44.md",
+     "dst": "待处理/窑温曲线-44.md"
+    }
+   ]
+  },
+  {
+   "goal": "把文件4改名为“已核-orchard-yield-15.txt”。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "orchard-yield-15.txt",
+     "dst": "已核-orchard-yield-15.txt"
+    }
+   ]
+  },
+  {
+   "goal": "把文件1也放进“待处理”。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-48.log",
+     "dst": "待处理/glacier-map-48.log"
+    }
+   ]
+  }
+ ]
+}

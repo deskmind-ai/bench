@@ -1,0 +1,93 @@
+# T7 v0 (deskmind#60, #62), test3: 有就移、没有就复制模板（分支在计划里，对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-BR2-test3
+title: T7 test3：有就移、没有就复制模板（分支在计划里，对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  新建文件夹 shelf。如果有 季报-终稿.md，把它移进 shelf；如果没有，就把 模板/季报模板.md 复制一份到 shelf，命名为 季报-终稿.md。其他文件不要动。
+fixture: dyn_br2_test3
+seed:
+  pool: t7-test
+  seed: 7310
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+- $WS/quarry-photos-59.log
+- $WS/模板/季报模板.md
+reference_plan:
+- id: part1
+  post: report_in_place
+changes:
+- id: c1
+  type: branch_on_result
+  trigger:
+    at_start: true
+  phase: early
+  effect: []
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- shelf
+- shelf/*
+grade:
+  checkpoints:
+  - name: report_in_place
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/shelf/季报-终稿.md
+          value: '季报模板.md
+
+            '
+      - file_text_equals:
+          path: $WS/模板/季报模板.md
+          value: '季报模板.md
+
+            '
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 shelf
+    writes:
+    - op: mkdir
+      dst: shelf
+  - goal: 没有 季报-终稿.md：把 模板/季报模板.md 复制到 shelf，命名为 季报-终稿.md
+    writes:
+    - op: copy
+      src: 模板/季报模板.md
+      dst: shelf/季报-终稿.md
+oracle_effect:
+- |
+  mkdir -p 'shelf'
+  cp '模板/季报模板.md' 'shelf/季报-终稿.md'
+blind_effect:
+- |
+  mkdir -p 'shelf'
+  cp '模板/季报模板.md' 'shelf/季报-终稿.md'

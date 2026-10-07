@@ -104,6 +104,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 把 温室 里的 蜂箱清点-78.csv 移到工作目录顶层
+    writes:
+    - op: move
+      src: 温室/蜂箱清点-78.csv
+      dst: 蜂箱清点-78.csv
+  - goal: 新建文件夹 inbox-old，把 温室 里的 kiln-temps-25.md 放进去
+    writes:
+    - op: mkdir
+      dst: inbox-old
+    - op: move
+      src: 温室/kiln-temps-25.md
+      dst: inbox-old/kiln-temps-25.md
+  - goal: 把 温室 里的 orchard-yield-73.csv 也放进 inbox-old
+    writes:
+    - op: move
+      src: 温室/orchard-yield-73.csv
+      dst: inbox-old/orchard-yield-73.csv
 oracle_effect:
 - |
   mv '温室/蜂箱清点-78.csv' .

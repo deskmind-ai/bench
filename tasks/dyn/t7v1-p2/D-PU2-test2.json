@@ -1,0 +1,45 @@
+{
+ "task": "D-PU2-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹“库房”，并将第3项文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "库房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "quarry-photos-15.txt",
+     "dst": "库房/quarry-photos-15.txt"
+    }
+   ]
+  },
+  {
+   "goal": "然后将第4项文件放进“库房”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-57.csv",
+     "dst": "库房/reef-count-57.csv"
+    }
+   ]
+  },
+  {
+   "goal": "最后将第5项文件放进“库房”，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "星图草案-74.md",
+     "dst": "库房/星图草案-74.md"
+    }
+   ]
+  }
+ ]
+}

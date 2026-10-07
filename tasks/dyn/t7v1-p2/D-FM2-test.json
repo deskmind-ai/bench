@@ -1,0 +1,45 @@
+{
+ "task": "D-FM2-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "先将指定 CSV 文件移到工作目录顶层",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "已整理/harbor-tides-82.csv",
+     "dst": "harbor-tides-82.csv"
+    }
+   ]
+  },
+  {
+   "goal": "新建库房文件夹，并将指定苔藓观察文本文件移入其中",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "库房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "已整理/苔藓观察-46.txt",
+     "dst": "库房/苔藓观察-46.txt"
+    }
+   ]
+  },
+  {
+   "goal": "最后将指定航线图文件移入库房",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "已整理/航线图-92.md",
+     "dst": "库房/航线图-92.md"
+    }
+   ]
+  }
+ ]
+}

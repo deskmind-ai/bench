@@ -1,0 +1,45 @@
+{
+ "task": "D-UA3-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "先新建文件夹“暗房”，并将第4项文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "暗房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "oak-survey-92.log",
+     "dst": "暗房/oak-survey-92.log"
+    }
+   ]
+  },
+  {
+   "goal": "然后将第7项文件放进“暗房”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "星图草案-29.md",
+     "dst": "暗房/星图草案-29.md"
+    }
+   ]
+  },
+  {
+   "goal": "最后将第3项文件放进“暗房”，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-54.md",
+     "dst": "暗房/kiln-temps-54.md"
+    }
+   ]
+  }
+ ]
+}

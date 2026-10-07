@@ -1,0 +1,47 @@
+{
+ "task": "D-BR1-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "创建大额和小额文件夹，按金额分类票据，其他文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "大额"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "小额"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-6807.txt",
+     "dst": "大额/票-6807.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-8940.txt",
+     "dst": "大额/票-8940.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-9353.txt",
+     "dst": "小额/票-9353.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-9553.txt",
+     "dst": "大额/票-9553.txt"
+    }
+   ]
+  }
+ ]
+}

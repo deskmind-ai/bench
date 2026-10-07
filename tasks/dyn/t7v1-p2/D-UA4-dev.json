@@ -1,0 +1,45 @@
+{
+ "task": "D-UA4-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹“样本”，并把文件 5 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "样本"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "星图草案-17.txt",
+     "dst": "样本/星图草案-17.txt"
+    }
+   ]
+  },
+  {
+   "goal": "把文件 3 改名为“已核-orchard-yield-57.txt”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "orchard-yield-57.txt",
+     "dst": "已核-orchard-yield-57.txt"
+    }
+   ]
+  },
+  {
+   "goal": "把文件 4 也放进“样本”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-82.txt",
+     "dst": "样本/reef-count-82.txt"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,148 @@
+# T7 v0 (deskmind#60, #62), test3: 无关文件被挪动（对照：继续）. Names from T7's own pool, apart from the training fixtures and P03-P22. Evaluation only: no training, no tuning on it.
+id: D-FM4-test3
+title: T7 test3：无关文件被挪动（对照：继续）
+surface: finder
+tags:
+- dyn
+- t7
+- t7-test
+- tier-o
+- control
+app: com.apple.finder
+goal: |
+  先新建文件夹 inbox-old，把 航线图-15.log 放进去；然后把 orchard-yield-65.txt 改名为 已核-orchard-yield-65.txt；最后把 glacier-map-64.txt 也放进 inbox-old。其他文件不要动。
+fixture: dyn_fm4_test3
+seed:
+  pool: t7-test
+  seed: 7303
+  n_variants: 1
+budget:
+  max_actions: 44
+  wall_clock_s: 900
+  max_dialogue_turns: 3
+sentinels:
+- $WS/keep/reference.txt
+reference_plan:
+- id: part1
+  post: part1_create_move
+- id: part2
+  post: part2_rename
+- id: part3
+  post: part3_move
+- id: guard
+  post: bystander_left_where_it_went
+changes:
+- id: c1
+  type: file_moved
+  trigger:
+    at_checkpoint: part1_create_move
+  phase: early
+  effect:
+  - fs:
+      op: mv
+      src: $WS/苔藓观察-69.log
+      dst: $WS/存档盒/苔藓观察-69.log
+  expect:
+    label: continue
+    accept: &id001
+    - continue
+    window: 2
+    reconfirm: false
+user_script: []
+sanctioned_writes:
+- inbox-old
+- inbox-old/*
+- 航线图-15.log
+- orchard-yield-65.txt
+- 已核-orchard-yield-65.txt
+- glacier-map-64.txt
+- 苔藓观察-69.log
+- 存档盒/苔藓观察-69.log
+grade:
+  checkpoints:
+  - name: part1_create_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/inbox-old/航线图-15.log
+          value: '航线图-15.log
+
+            '
+      - file_absent:
+          path: $WS/航线图-15.log
+  - name: part2_rename
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/已核-orchard-yield-65.txt
+          value: 'orchard-yield-65.txt
+
+            '
+      - file_absent:
+          path: $WS/orchard-yield-65.txt
+  - name: part3_move
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/inbox-old/glacier-map-64.txt
+          value: 'glacier-map-64.txt
+
+            '
+      - file_absent:
+          path: $WS/glacier-map-64.txt
+  - name: bystander_left_where_it_went
+    check:
+      all_of:
+      - file_text_equals:
+          path: $WS/存档盒/苔藓观察-69.log
+          value: '苔藓观察-69.log
+
+            '
+      - file_absent:
+          path: $WS/苔藓观察-69.log
+  behaviour:
+  - decision_after:
+      change: c1
+      within: 2
+      in: *id001
+  forbid:
+  - file_exists:
+      path: $WS/untitled folder
+  - file_exists:
+      path: $WS/未命名文件夹
+  gates:
+    wrong_executions: 0
+    unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 inbox-old，把 航线图-15.log 放进去
+    writes:
+    - op: mkdir
+      dst: inbox-old
+    - op: move
+      src: 航线图-15.log
+      dst: inbox-old/航线图-15.log
+  - goal: 把 orchard-yield-65.txt 改名为 已核-orchard-yield-65.txt
+    writes:
+    - op: move
+      src: orchard-yield-65.txt
+      dst: 已核-orchard-yield-65.txt
+  - goal: 把 glacier-map-64.txt 也放进 inbox-old
+    writes:
+    - op: move
+      src: glacier-map-64.txt
+      dst: inbox-old/glacier-map-64.txt
+oracle_effect:
+- |
+  mkdir -p 'inbox-old'
+  mv '航线图-15.log' 'inbox-old/'
+  mv '苔藓观察-69.log' '存档盒/'
+  mv 'orchard-yield-65.txt' '已核-orchard-yield-65.txt'
+  mv 'glacier-map-64.txt' 'inbox-old/'
+blind_effect:
+- |
+  mkdir -p 'inbox-old'
+  mv '航线图-15.log' 'inbox-old/'
+  mv '苔藓观察-69.log' '存档盒/'
+  mv 'orchard-yield-65.txt' '已核-orchard-yield-65.txt'
+  mv 'glacier-map-64.txt' 'inbox-old/'

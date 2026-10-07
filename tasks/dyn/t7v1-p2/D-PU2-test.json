@@ -1,0 +1,45 @@
+{
+ "task": "D-PU2-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹“温室”，把编号 4 的文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "温室"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "oak-survey-75.md",
+     "dst": "温室/oak-survey-75.md"
+    }
+   ]
+  },
+  {
+   "goal": "把编号 3 的文件也放进“温室”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-52.txt",
+     "dst": "温室/kiln-temps-52.txt"
+    }
+   ]
+  },
+  {
+   "goal": "最后把编号 6 的文件也放进“温室”，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-51.txt",
+     "dst": "温室/苔藓观察-51.txt"
+    }
+   ]
+  }
+ ]
+}

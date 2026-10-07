@@ -1,0 +1,45 @@
+{
+ "task": "D-UA3-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹“暗房”，并将第1个文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "暗房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-53.log",
+     "dst": "暗房/glacier-map-53.log"
+    }
+   ]
+  },
+  {
+   "goal": "将第8个文件也放进“暗房”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-55.log",
+     "dst": "暗房/窑温曲线-55.log"
+    }
+   ]
+  },
+  {
+   "goal": "最后将第4个文件也放进“暗房”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "quarry-photos-91.csv",
+     "dst": "暗房/quarry-photos-91.csv"
+    }
+   ]
+  }
+ ]
+}

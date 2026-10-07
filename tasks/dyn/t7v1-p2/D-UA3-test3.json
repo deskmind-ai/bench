@@ -1,0 +1,45 @@
+{
+ "task": "D-UA3-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 温室，并把第 3 个文件放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "温室"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "orchard-yield-71.csv",
+     "dst": "温室/orchard-yield-71.csv"
+    }
+   ]
+  },
+  {
+   "goal": "把第 4 个文件也放进 温室",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-41.md",
+     "dst": "温室/reef-count-41.md"
+    }
+   ]
+  },
+  {
+   "goal": "最后把第 7 个文件也放进 温室，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "茶园账本-13.txt",
+     "dst": "温室/茶园账本-13.txt"
+    }
+   ]
+  }
+ ]
+}

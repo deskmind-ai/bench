@@ -1,0 +1,43 @@
+{
+ "task": "D-BR4-dev",
+ "model": "openai/gpt-6.1-sol",
+ "ask": "青禾有两张发票，要移哪张：5（680 元）还是 6（1240 元）？",
+ "after_answer": [
+  {
+   "goal": "新建“待报销”文件夹，把青禾9月那张发票移进去，其他文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "待报销"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-青禾-0927.txt",
+     "dst": "待报销/票-青禾-0927.txt"
+    }
+   ]
+  }
+ ],
+ "parts": [
+  {
+   "goal": "新建“待报销”文件夹，把青禾9月那张发票移进去，其他文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "待报销"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-青禾-0927.txt",
+     "dst": "待报销/票-青禾-0927.txt"
+    }
+   ]
+  }
+ ]
+}

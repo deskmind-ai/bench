@@ -106,6 +106,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 库房，把 渡口排班-44.txt 放进去
+    writes:
+    - op: mkdir
+      dst: 库房
+    - op: move
+      src: 渡口排班-44.txt
+      dst: 库房/渡口排班-44.txt
+  - goal: 把 梯田测绘-75.csv 也放进 库房
+    writes:
+    - op: move
+      src: 梯田测绘-75.csv
+      dst: 库房/梯田测绘-75.csv
+  - goal: 把 harbor-tides-43.md 也放进 库房
+    writes:
+    - op: move
+      src: harbor-tides-43.md
+      dst: 库房/harbor-tides-43.md
 oracle_effect:
 - |
   mkdir -p '库房（2026）'

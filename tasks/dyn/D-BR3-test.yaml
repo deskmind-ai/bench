@@ -91,6 +91,12 @@ grade:
     wrong_executions: 0
     unconfirmed_writes: 0
 allow_vacuous: true
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 待报销
+    writes:
+    - op: mkdir
+      dst: 待报销
 oracle_effect:
 - |
   :

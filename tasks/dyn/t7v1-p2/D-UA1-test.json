@@ -1,0 +1,91 @@
+{
+ "task": "D-UA1-test",
+ "model": "openai/gpt-6.1-sol",
+ "ask": "这里有 2 个 md 和 3 个 csv，共 5 个文件。你说的“这 4 个文件”具体是哪 4 个？",
+ "after_answer": [
+  {
+   "goal": "整理 4 个文件：两个带日期的 csv 放入“表格”，两个 md 放入“文档”；其余文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-67_2026-09.csv",
+     "dst": "表格/窑温曲线-67_2026-09.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "茶园账本-49_2026-08.csv",
+     "dst": "表格/茶园账本-49_2026-08.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-78_2026-09.md",
+     "dst": "文档/harbor-tides-78_2026-09.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-56_2026-08.md",
+     "dst": "文档/kiln-temps-56_2026-08.md"
+    }
+   ]
+  }
+ ],
+ "parts": [
+  {
+   "goal": "整理 4 个文件：两个带日期的 csv 放入“表格”，两个 md 放入“文档”；其余文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-67_2026-09.csv",
+     "dst": "表格/窑温曲线-67_2026-09.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "茶园账本-49_2026-08.csv",
+     "dst": "表格/茶园账本-49_2026-08.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-78_2026-09.md",
+     "dst": "文档/harbor-tides-78_2026-09.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-56_2026-08.md",
+     "dst": "文档/kiln-temps-56_2026-08.md"
+    }
+   ]
+  }
+ ]
+}

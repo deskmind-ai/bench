@@ -1,0 +1,127 @@
+{
+ "task": "D-OG1-test2",
+ "model": "openai/gpt-6.1-sol",
+ "ask": "要按文件类型分成图片、表格和文档三个文件夹，并保持现有文件夹及其内容不动吗？",
+ "after_answer": [
+  {
+   "goal": "按文件类型归类，保留原有文件夹及其中的文件不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "图片"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "星图草案-43.csv",
+     "dst": "表格/星图草案-43.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "灯塔巡检-71.csv",
+     "dst": "表格/灯塔巡检-71.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-38.md",
+     "dst": "文档/航线图-38.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-31.md",
+     "dst": "文档/苔藓观察-31.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "orchard-yield-26.jpg",
+     "dst": "图片/orchard-yield-26.jpg"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "quarry-photos-25.jpg",
+     "dst": "图片/quarry-photos-25.jpg"
+    }
+   ]
+  }
+ ],
+ "parts": [
+  {
+   "goal": "按文件类型归类，保留原有文件夹及其中的文件不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "图片"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "星图草案-43.csv",
+     "dst": "表格/星图草案-43.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "灯塔巡检-71.csv",
+     "dst": "表格/灯塔巡检-71.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-38.md",
+     "dst": "文档/航线图-38.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-31.md",
+     "dst": "文档/苔藓观察-31.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "orchard-yield-26.jpg",
+     "dst": "图片/orchard-yield-26.jpg"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "quarry-photos-25.jpg",
+     "dst": "图片/quarry-photos-25.jpg"
+    }
+   ]
+  }
+ ]
+}

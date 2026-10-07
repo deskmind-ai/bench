@@ -1,0 +1,52 @@
+{
+ "task": "D-UA1-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "创建“表格”文件夹，将两个 csv 文件移入其中。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-35_2026-08.csv",
+     "dst": "表格/harbor-tides-35_2026-08.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-51_2026-09.csv",
+     "dst": "表格/苔藓观察-51_2026-09.csv"
+    }
+   ]
+  },
+  {
+   "goal": "创建“文档”文件夹，将两个 md 文件移入其中，其他文件保持不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-63_2026-09.md",
+     "dst": "文档/reef-count-63_2026-09.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "茶园账本-97_2026-08.md",
+     "dst": "文档/茶园账本-97_2026-08.md"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,75 @@
+{
+ "task": "D-OG1-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "将 CSV 文件归入数据文件夹。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "数据"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-38.csv",
+     "dst": "数据/glacier-map-38.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-90.csv",
+     "dst": "数据/窑温曲线-90.csv"
+    }
+   ]
+  },
+  {
+   "goal": "将 Markdown 文件归入文档文件夹。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-10.md",
+     "dst": "文档/kiln-temps-10.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "orchard-yield-45.md",
+     "dst": "文档/orchard-yield-45.md"
+    }
+   ]
+  },
+  {
+   "goal": "将 JPG 文件归入图片文件夹，已有文件夹及其内容保持不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "图片"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "quarry-photos-34.jpg",
+     "dst": "图片/quarry-photos-34.jpg"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "灯塔巡检-34.jpg",
+     "dst": "图片/灯塔巡检-34.jpg"
+    }
+   ]
+  }
+ ]
+}

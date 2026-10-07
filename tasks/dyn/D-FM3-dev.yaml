@@ -106,6 +106,25 @@ grade:
   gates:
     wrong_executions: 0
     unconfirmed_writes: 0
+fixed_plan:
+  parts:
+  - goal: 新建文件夹 inbox-old，把 星图草案-55.log 放进去
+    writes:
+    - op: mkdir
+      dst: inbox-old
+    - op: move
+      src: 星图草案-55.log
+      dst: inbox-old/星图草案-55.log
+  - goal: 把 梯田测绘-56.log 也放进 inbox-old
+    writes:
+    - op: move
+      src: 梯田测绘-56.log
+      dst: inbox-old/梯田测绘-56.log
+  - goal: 把 窑温曲线-66.txt 也放进 inbox-old
+    writes:
+    - op: move
+      src: 窑温曲线-66.txt
+      dst: inbox-old/窑温曲线-66.txt
 oracle_effect:
 - |
   mkdir -p 'inbox-old（2026）'

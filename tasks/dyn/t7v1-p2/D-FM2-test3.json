@@ -1,0 +1,45 @@
+{
+ "task": "D-FM2-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "先将文件 2 移到工作目录顶层",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "field/梯田测绘-16.csv",
+     "dst": "梯田测绘-16.csv"
+    }
+   ]
+  },
+  {
+   "goal": "新建温室文件夹，并将文件 4 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "温室"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "field/蜂箱清点-17.csv",
+     "dst": "温室/蜂箱清点-17.csv"
+    }
+   ]
+  },
+  {
+   "goal": "最后将文件 3 也放进温室文件夹",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "field/潮汐表-15.csv",
+     "dst": "温室/潮汐表-15.csv"
+    }
+   ]
+  }
+ ]
+}
