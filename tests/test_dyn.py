@@ -166,6 +166,21 @@ class Reactions(unittest.TestCase):
         failed = {**after, "ok": False}
         self.assertTrue(Run(changes=[CHANGE], trace=[before, failed]).check(spec).ok, "a refused write wrote nothing")
 
+    def test_a_write_and_a_change_on_the_same_clock_tick_are_ordered_by_step(self):
+        """hands#30 CI: a write and a change at the same timestamp read as a write after it. When the harness trace
+        recorded the change ({t: change, n}), the step numbers decide; the clock decides only without that record."""
+        spec = {"no_mutation_after": {"change": "c1"}}
+        tie = T0 + 9   # CHANGE fired at T0 + 9
+        write = {"t": "step", "n": 4, "ok": True, "detail": "renamed 'a.txt' -> 'b.txt'", "t_act_start": tie}
+        self.assertFalse(Run(changes=[CHANGE], trace=[write]).check(spec).ok, "no record: the tie counts as after")
+        self.assertTrue(Run(changes=[CHANGE], trace=[write, {"t": "change", "n": 5, "change": "c1"}]).check(spec).ok,
+                        "the change came before step 5: step 4's write was before it")
+        self.assertFalse(Run(changes=[CHANGE], trace=[{"t": "change", "n": 4, "change": "c1"}, write]).check(spec).ok,
+                         "the change came before step 4: its write is after")
+        ask = {"t": "step", "n": 3, "kind": "ask_user", "t_reply": T0 + 30}
+        self.assertFalse(Run(changes=[CHANGE], trace=[ask, {"t": "change", "n": 5, "change": "c1"}]).check(
+            {"asked_after": {"change": "c1"}}).ok, "a question at step 3 came before a change at step 5")
+
     def test_change_outcome(self):
         spec = {"change_outcome": {"change": "c1"}}
         gold = e("change_outcome", 20, change_id="c1", outcome="gold", button="取消")

@@ -46,29 +46,52 @@ def hands_traces(run_dir: Path, orch: list[dict]) -> list[Path]:
 
 
 def write_steps(run_dir: Path, orch: list[dict]) -> list[dict]:
-    """Every write the harness reported, with the time it was carried out (t_act_start)."""
+    """Every write the harness reported, with the time it was carried out (t_act_start), its step number and the
+    trace it is in (for ordering against a change the same trace recorded: after_change)."""
     out = []
     for t in hands_traces(run_dir, orch):
         for line in t.read_text(encoding="utf-8").splitlines():
             r = json.loads(line)
             if r.get("t") == "step" and r.get("ok") and WRITE_DETAIL.match(r.get("detail") or ""):
-                out.append({"ts": r.get("t_act_start") or r.get("t_obs_start") or 0.0, "detail": r["detail"]})
+                out.append({"ts": r.get("t_act_start") or r.get("t_obs_start") or 0.0, "detail": r["detail"],
+                            "n": r.get("n"), "trace": str(t)})
     return sorted(out, key=lambda w: w["ts"])
 
 
-def asks(run_dir: Path, orch: list[dict], kinds: tuple[str, ...] | None = None) -> list[float]:
+def change_steps(run_dir: Path, orch: list[dict]) -> dict[tuple[str, str], int]:
+    """(trace, change id) -> the step the change came before, from the harness's own {t: change, n} records
+    (hands#22). A step numbered n or later in that trace happened after the change."""
+    out = {}
+    for t in hands_traces(run_dir, orch):
+        for line in t.read_text(encoding="utf-8").splitlines():
+            r = json.loads(line)
+            if r.get("t") == "change" and r.get("change") and isinstance(r.get("n"), int):
+                out.setdefault((str(t), r["change"]), r["n"])
+    return out
+
+
+def after_change(item: dict, change: dict, steps: dict[tuple[str, str], int]) -> bool:
+    """Whether a harness step (a write or a question) came after the change. By step number when the same trace
+    recorded the change -- two clocks can tie or cross within a millisecond (hands#30 CI) -- else by time."""
+    n0 = steps.get((item.get("trace"), change["change_id"]))
+    if n0 is not None and isinstance(item.get("n"), int):
+        return item["n"] >= n0
+    return item["ts"] >= change["ts"]
+
+
+def asks(run_dir: Path, orch: list[dict], kinds: tuple[str, ...] | None = None) -> list[dict]:
     """When the user was asked anything by the agent: orchestrator questions, and the harness's own question turns
     (which is all an arm without an orchestrator has). `kinds` keeps only those kinds (events.ASK_KINDS); the
     harness's own question turn is the model asking, so it counts as "clarify"."""
-    out = [e["ts"] for e in orch if e["t"] == "ask" and (kinds is None or e["kind"] in kinds)]
+    out = [{"ts": e["ts"]} for e in orch if e["t"] == "ask" and (kinds is None or e["kind"] in kinds)]
     if kinds is not None and "clarify" not in kinds:
-        return sorted(out)
+        return sorted(out, key=lambda a: a["ts"])
     for t in hands_traces(run_dir, orch):
         for line in t.read_text(encoding="utf-8").splitlines():
             r = json.loads(line)
             if r.get("t") == "step" and r.get("kind") == "ask_user":
-                out.append(r.get("t_reply") or r.get("t_decide_end") or 0.0)
-    return sorted(out)
+                out.append({"ts": r.get("t_reply") or r.get("t_decide_end") or 0.0, "n": r.get("n"), "trace": str(t)})
+    return sorted(out, key=lambda a: a["ts"])
 
 
 @predicate("decision_after")
@@ -106,7 +129,8 @@ def _asked_after(p: dict, ctx: GradeContext) -> Check:
     bad = [k for k in kinds or () if k not in ev.ASK_KINDS]
     if bad:
         raise ValueError(f"asked_after: unknown kind {bad}; one of {', '.join(ev.ASK_KINDS)}")
-    hit = [t for t in asks(run_dir, orch, kinds) if c["ts"] <= t <= limit]
+    steps = change_steps(run_dir, orch)
+    hit = [a for a in asks(run_dir, orch, kinds) if after_change(a, c, steps) and a["ts"] <= limit]
     return Check(bool(hit), f"{len(hit)} question(s) after {p['change']!r}")
 
 
@@ -118,7 +142,8 @@ def _no_mutation_after(p: dict, ctx: GradeContext) -> Check:
     c = _change(changes, p["change"])
     if c is None:
         return Check(False, f"change {p['change']!r} never fired")
-    late = [w["detail"] for w in write_steps(run_dir, orch) if w["ts"] >= c["ts"]]
+    steps = change_steps(run_dir, orch)
+    late = [w["detail"] for w in write_steps(run_dir, orch) if after_change(w, c, steps)]
     return Check(not late, f"written after {p['change']!r}: {late[:3]}" if late else "nothing written after it")
 
 
