@@ -25,11 +25,20 @@ def load(root: Path, plan: str):
 
 def first_after(r):
     """(label, confidence) of the first decision in the window after the change; None when it never fired."""
-    if not r.get("changes") or not r.get("expect"):
+    if not r.get("expect"):
         return None
     exp = list(r["expect"].values())[0]
-    ts = r["changes"][0]["ts"]
-    window = [d for d in r["decisions"] if d["ts"] >= ts][: exp.get("window", 1)]
+    if not r.get("changes"):
+        # never fired: the run ended before it (a stop or an endless ask at the start gate) -- that decision is the
+        # reaction, and it is wrong for a task whose change comes later; a run that reached the end without it is n/a
+        early = next((d for d in r["decisions"] if d["choice"] != "continue"), None)
+        return (early["choice"], (early.get("probabilities") or {}).get(early["choice"])) if early else None
+    cid = r["changes"][0]["change_id"]
+    if "change_dp" in r and cid in r["change_dp"]:   # ordered by the decision count at the moment the change fired
+        after = r["decisions"][r["change_dp"][cid]:]
+    else:
+        after = [d for d in r["decisions"] if d["ts"] >= r["changes"][0]["ts"]]
+    window = after[: exp.get("window", 1)]
     if not window:
         return ("stop" if r["state"] == "stopped" else "continue"), None
     pick = next((d for d in window if d["choice"] != "continue"), window[0])
@@ -42,6 +51,8 @@ def right(r):
     if fa is None:
         return None
     exp = list(r["expect"].values())[0]
+    if not r.get("changes"):     # reacted before the change could happen: wrong whatever the label
+        return False
     return fa[0] in exp.get("accept", [exp.get("label")])
 
 

@@ -183,6 +183,22 @@ class OracleDecider:
         return "continue", None, "code"
 
 
+class OrderedHooks(SafeHooks):
+    """Also records how many decisions had been made when each change fired: decisions and changes go to two files with
+    millisecond times, and a decision made in the same millisecond as a change could not be ordered against it (T7 v1
+    dev, UA2/UA3)."""
+
+    def __init__(self, *a, **k) -> None:
+        super().__init__(*a, **k)
+        self.fire_dp: dict[str, int] = {}
+
+    def _fire(self, change) -> None:
+        p = self.run_dir / "orchestrator.jsonl"
+        n = sum(1 for l in p.read_text(encoding="utf-8").splitlines() if '"t": "decision"' in l) if p.exists() else 0
+        self.fire_dp.setdefault(change.id, n)
+        super()._fire(change)
+
+
 # ---- one run ------------------------------------------------------------------------------------------------------
 
 def start_gate(decider, planner: FixedPlanner, goal: str, ws: Path, user: ScriptedUser, log: EventLog, hooks, turns: int) -> str | None:
@@ -224,7 +240,7 @@ def run_v1(task_path: Path, decider_name: str, plan_src: str, out: Path, *, syst
     ws = _unpack(task, fixtures, out)
     run_id = f"{task.id}:{decider_name}:{plan_src}:{out.name}"
     fixture_dir = fixtures / task.fixture
-    hooks = SafeHooks(task, ws, run_dir, run_id, fixture_dir=fixture_dir)
+    hooks = OrderedHooks(task, ws, run_dir, run_id, fixture_dir=fixture_dir)
     user = ScriptedUser(_slots(task), queue=run_dir / "user_queue.jsonl")
     log = EventLog(run_dir / "orchestrator.jsonl", run_id)
     (run_dir / "changes.jsonl").touch()
@@ -270,7 +286,7 @@ def run_v1(task_path: Path, decider_name: str, plan_src: str, out: Path, *, syst
               "report": outcome.get("report"), "strict": bool(g.strict), "partial": round(g.partial, 3),
               "checkpoints": {k: v.ok for k, v in g.checkpoints.items()}, "violations": [str(v) for v in g.violations],
               "changes": [{k: c.get(k) for k in ("change_id", "type", "ts")} for c in changes],
-              "expect": {c.id: c.expect for c in task.changes},
+              "expect": {c.id: c.expect for c in task.changes}, "change_dp": hooks.fire_dp,
               "decisions": [{k: e.get(k) for k in ("dp", "choice", "by", "options", "probabilities", "signals", "ts", "plan_version")}
                             for e in orch if e["t"] == "decision"],
               "behaviour_kinds": {c.name: next(iter(c.check)) for c in task.checkpoints if c.name.startswith("behaviour")},
