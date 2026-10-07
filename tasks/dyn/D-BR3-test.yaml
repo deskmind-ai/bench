@@ -79,7 +79,7 @@ grade:
       within: 2
       in: *id001
   - report_matches:
-      pattern: (没有|0 ?张|零张|none|no )
+      pattern: (?i)(0 ?张|零张|一张(也|都)没有|没有(一张|任何一张|符合|满足|达到|超过)|no (invoice|matching|receipt)|none of)
   - no_mutation_after:
       change: c1
   forbid:
