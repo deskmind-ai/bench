@@ -1,0 +1,45 @@
+{
+ "task": "D-FM2-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "先将文件 6 移到工作目录顶层",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "待处理/蜂箱清点-65.log",
+     "dst": "蜂箱清点-65.log"
+    }
+   ]
+  },
+  {
+   "goal": "然后新建文件夹 field，并将文件 5 移入其中",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "field"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "待处理/窑温曲线-42.log",
+     "dst": "field/窑温曲线-42.log"
+    }
+   ]
+  },
+  {
+   "goal": "最后将文件 4 移入 field，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "待处理/reef-count-93.log",
+     "dst": "field/reef-count-93.log"
+    }
+   ]
+  }
+ ]
+}

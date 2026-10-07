@@ -1,0 +1,45 @@
+{
+ "task": "D-FM3-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 inbox-old，并把文件 4 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "inbox-old"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "星图草案-55.log",
+     "dst": "inbox-old/星图草案-55.log"
+    }
+   ]
+  },
+  {
+   "goal": "把文件 5 放进 inbox-old",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "梯田测绘-56.log",
+     "dst": "inbox-old/梯田测绘-56.log"
+    }
+   ]
+  },
+  {
+   "goal": "最后把文件 6 放进 inbox-old，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-66.txt",
+     "dst": "inbox-old/窑温曲线-66.txt"
+    }
+   ]
+  }
+ ]
+}

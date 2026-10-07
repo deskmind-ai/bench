@@ -1,0 +1,58 @@
+{
+ "task": "D-OG2-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "创建北港项目文件夹并归入对应文件",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-kiln-temps-13.md",
+     "dst": "北港/北港-kiln-temps-13.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-潮汐表-15.txt",
+     "dst": "北港/北港-潮汐表-15.txt"
+    }
+   ]
+  },
+  {
+   "goal": "创建青石项目文件夹并归入对应文件",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-oak-survey-59.log",
+     "dst": "青石/青石-oak-survey-59.log"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-渡口排班-34.log",
+     "dst": "青石/青石-渡口排班-34.log"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-窑温曲线-72.log",
+     "dst": "青石/青石-窑温曲线-72.log"
+    }
+   ]
+  }
+ ]
+}

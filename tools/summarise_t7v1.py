@@ -47,6 +47,8 @@ def first_after(r):
 
 
 def right(r):
+    if r.get("state") == "errored":   # an errored run is a failure, not a gap (v1-2)
+        return False
     fa = first_after(r)
     if fa is None:
         return None
@@ -57,7 +59,7 @@ def right(r):
 
 
 def is_control(r):
-    exp = list(r["expect"].values())[0] if r.get("expect") else {}
+    exp = list((r.get("expect") or {}).values())[0] if r.get("expect") else {}
     return exp.get("label") == "continue"
 
 
@@ -120,7 +122,8 @@ def main():
         wrong = sum(1 for r in rs if any(not v.startswith("guard") for v in r["violations"]))
         unconf = sum(1 for r in rs if any("unconfirmed" in v for v in r["violations"])) + \
             sum(1 for r in rs if not all(v for kk, v in r["checkpoints"].items() if kk.startswith("confirmed_before_write")))
-        stats[arm] = {"rate": k / max(len(scored), 1), "false_change": false_change, "wrong": wrong, "unconf": unconf}
+        stats[arm] = {"rate": k / max(len(scored), 1), "false_change": false_change / max(len(ctrl), 1), "n_ctrl": len(ctrl),
+                      "wrong": wrong, "unconf": unconf}
         print(f"{arm} | {k}/{len(scored)} ({100 * k / max(len(scored), 1):.0f}%) | {100 * lo:.0f}–{100 * hi:.0f}% | "
               f"{len(scored)}/{len(rs)} | {sum(bool(right(r)) for r in ask)}/{len(ask)} | {sum(bool(right(r)) for r in stop)}/{len(stop)} | "
               f"{false_change}/{len(ctrl)} | {wrong} | {unconf} | {sum(r['strict'] for r in rs)}/{len(rs)}")
@@ -133,20 +136,22 @@ def main():
         if best:
             d, lo, hi = boot(rows, best, "D0", tasks)
             t = threshold(dev, best) if dev else None
-            pts = [(first_after(r)[1], right(r)) for r in rows if r["arm"] == best and right(r) is not None and first_after(r)[1] is not None]
+            pts = [(fa[1], right(r)) for r in rows if r["arm"] == best for fa in [first_after(r)] if fa and fa[1] is not None]
             cov = sum(1 for c, _ in pts if t is not None and c >= t)
             err = sum(1 for c, ok in pts if t is not None and c >= t and not ok)
             print(f"  best local: {best}")
             print(f"  1. >= 20 points over D0 with CI > 0: {'yes' if d >= 0.2 and lo > 0 else 'no'} ({100 * d:+.1f}, [{100 * lo:+.1f}, {100 * hi:+.1f}])")
             print(f"  2. zero-error coverage at the dev threshold {t if t is not None else 'n/a'}: {cov}/{len(pts)}, {err} wrong -> "
                   f"{'yes' if pts and err == 0 and cov / len(pts) >= 0.5 else 'no'}")
-            print(f"  3. changed on a control <= D0 + 1: {stats[best]['false_change']} vs {stats['D0']['false_change']} -> "
-                  f"{'yes' if stats[best]['false_change'] <= stats['D0']['false_change'] + 1 else 'no'}")
+            # rates, so a 3-rep arm and a 1-rep arm compare: "D0 + 1" is one more control task out of the controls (v1-2)
+            fb, f0, nc = stats[best]["false_change"], stats["D0"]["false_change"], len({r["task"] for r in rows if is_control(r)})
+            print(f"  3. changed-on-a-control rate <= D0's + 1/{nc} controls: {100 * fb:.0f}% vs {100 * f0:.0f}% -> "
+                  f"{'yes' if fb <= f0 + 1 / max(nc, 1) + 1e-9 else 'no'}")
             gates = all(stats[x]["wrong"] == 0 and stats[x]["unconf"] == 0 for x in stats if x != "Dstar")
             print(f"  4. both gates 0 in every run but Dstar: {'yes' if gates else 'no'}")
     print("\ncalibration (first decision after the change): threshold from dev, coverage and errors on test")
     for arm in [x for x in arms if x not in ("D0", "Dstar")]:
-        pts = [(first_after(r)[1], right(r)) for r in rows if r["arm"] == arm and right(r) is not None and first_after(r)[1] is not None]
+        pts = [(fa[1], right(r)) for r in rows if r["arm"] == arm for fa in [first_after(r)] if fa and fa[1] is not None]
         t = threshold(dev, arm) if dev else None
         if not pts:
             continue

@@ -1,0 +1,45 @@
+{
+ "task": "D-PU2-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 已整理，并把文件 4 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "已整理"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "渡口排班-24.csv",
+     "dst": "已整理/渡口排班-24.csv"
+    }
+   ]
+  },
+  {
+   "goal": "把文件 5 放进 已整理",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "潮汐表-60.log",
+     "dst": "已整理/潮汐表-60.log"
+    }
+   ]
+  },
+  {
+   "goal": "把文件 6 放进 已整理",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "灯塔巡检-12.log",
+     "dst": "已整理/灯塔巡检-12.log"
+    }
+   ]
+  }
+ ]
+}

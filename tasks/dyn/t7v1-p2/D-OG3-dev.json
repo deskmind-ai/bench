@@ -1,0 +1,69 @@
+{
+ "task": "D-OG3-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "将编号 3、4 整理到北港项目文件夹。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-reef-count-37.log",
+     "dst": "北港/北港-reef-count-37.log"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "北港-渡口排班-98.log",
+     "dst": "北港/北港-渡口排班-98.log"
+    }
+   ]
+  },
+  {
+   "goal": "将编号 5、6 整理到青石项目文件夹。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-quarry-photos-27.log",
+     "dst": "青石/青石-quarry-photos-27.log"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石-苔藓观察-74.md",
+     "dst": "青石/青石-苔藓观察-74.md"
+    }
+   ]
+  },
+  {
+   "goal": "将编号 7 整理到青石北港项目文件夹，保持编号 1、2 不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "青石北港"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "青石北港-联合预算-37.csv",
+     "dst": "青石北港/青石北港-联合预算-37.csv"
+    }
+   ]
+  }
+ ]
+}

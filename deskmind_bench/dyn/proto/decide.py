@@ -31,6 +31,7 @@ class Context:
     can_replan: bool
     can_ask: bool
     can_handoff: bool
+    workspace: str = ""        # the file listing and small-file text, given at the start gate only (T7 v1-2)
 
     def options(self) -> list[str]:
         allowed = {"continue", "stop"} | ({"repair"} if self.can_repair else set()) | \
@@ -61,6 +62,7 @@ class SystemOneDecider:
         opts = ctx.options()
         body = {
             "state": {"goal": ctx.goal, "plan": ctx.parts, "last_part": {"outcome": ctx.outcome, "detail": ctx.detail[:400]},
+                      **({"workspace": ctx.workspace} if ctx.workspace else {}),
                       "signals": ctx.signals, "user_said": ctx.said},
             "questions": {"next": {"type": "choice",
                                    "instructions": {"goal": ctx.goal, "rules": [

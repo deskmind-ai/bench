@@ -1,0 +1,127 @@
+{
+ "task": "D-OG1-dev",
+ "model": "openai/gpt-6.1-sol",
+ "ask": "你希望按文件类型、主题，还是其他方式整理？",
+ "after_answer": [
+  {
+   "goal": "按文件类型整理，保留其他文件和文件夹不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "图片"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-60.csv",
+     "dst": "表格/harbor-tides-60.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-76.csv",
+     "dst": "表格/苔藓观察-76.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "灯塔巡检-50.md",
+     "dst": "文档/灯塔巡检-50.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "茶园账本-77.md",
+     "dst": "文档/茶园账本-77.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-69.jpg",
+     "dst": "图片/航线图-69.jpg"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "蜂箱清点-51.jpg",
+     "dst": "图片/蜂箱清点-51.jpg"
+    }
+   ]
+  }
+ ],
+ "parts": [
+  {
+   "goal": "按文件类型整理，保留其他文件和文件夹不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "表格"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "图片"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-60.csv",
+     "dst": "表格/harbor-tides-60.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-76.csv",
+     "dst": "表格/苔藓观察-76.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "灯塔巡检-50.md",
+     "dst": "文档/灯塔巡检-50.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "茶园账本-77.md",
+     "dst": "文档/茶园账本-77.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-69.jpg",
+     "dst": "图片/航线图-69.jpg"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "蜂箱清点-51.jpg",
+     "dst": "图片/蜂箱清点-51.jpg"
+    }
+   ]
+  }
+ ]
+}

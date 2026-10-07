@@ -1,0 +1,45 @@
+{
+ "task": "D-UA2-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建库房文件夹，并把文件3放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "库房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "星图草案-96.csv",
+     "dst": "库房/星图草案-96.csv"
+    }
+   ]
+  },
+  {
+   "goal": "将文件4改名为已核-梯田测绘-40.log",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "梯田测绘-40.log",
+     "dst": "已核-梯田测绘-40.log"
+    }
+   ]
+  },
+  {
+   "goal": "把文件5也放进库房",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "渡口排班-33.log",
+     "dst": "库房/渡口排班-33.log"
+    }
+   ]
+  }
+ ]
+}

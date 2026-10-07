@@ -1,0 +1,45 @@
+{
+ "task": "D-UA3-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "先新建文件夹存档盒，并把文件 1 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "存档盒"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-34.md",
+     "dst": "存档盒/glacier-map-34.md"
+    }
+   ]
+  },
+  {
+   "goal": "然后把文件 7 放进存档盒",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "梯田测绘-55.log",
+     "dst": "存档盒/梯田测绘-55.log"
+    }
+   ]
+  },
+  {
+   "goal": "最后把文件 4 放进存档盒",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-64.txt",
+     "dst": "存档盒/reef-count-64.txt"
+    }
+   ]
+  }
+ ]
+}

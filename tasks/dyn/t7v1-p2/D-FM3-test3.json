@@ -1,0 +1,45 @@
+{
+ "task": "D-FM3-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 已整理，并把文件 5 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "已整理"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-68.md",
+     "dst": "已整理/窑温曲线-68.md"
+    }
+   ]
+  },
+  {
+   "goal": "把文件 1 放进 已整理",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-60.log",
+     "dst": "已整理/glacier-map-60.log"
+    }
+   ]
+  },
+  {
+   "goal": "把文件 6 放进 已整理",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "蜂箱清点-88.md",
+     "dst": "已整理/蜂箱清点-88.md"
+    }
+   ]
+  }
+ ]
+}

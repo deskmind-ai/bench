@@ -1,0 +1,45 @@
+{
+ "task": "D-FM1-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建库房文件夹，并将文件3放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "库房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "loom-pattern-17.md",
+     "dst": "库房/loom-pattern-17.md"
+    }
+   ]
+  },
+  {
+   "goal": "将文件4改名为已核-reef-count-96.log",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "reef-count-96.log",
+     "dst": "已核-reef-count-96.log"
+    }
+   ]
+  },
+  {
+   "goal": "将文件5也放进库房",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "渡口排班-32.md",
+     "dst": "库房/渡口排班-32.md"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+{
+ "task": "D-BR1-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "创建“大额”和“小额”文件夹，将金额1000元及以上的票据移入“大额”，其余移入“小额”，其他文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "大额"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "小额"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-3861.txt",
+     "dst": "大额/票-3861.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-4205.txt",
+     "dst": "小额/票-4205.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-5555.txt",
+     "dst": "大额/票-5555.txt"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "票-7389.txt",
+     "dst": "大额/票-7389.txt"
+    }
+   ]
+  }
+ ]
+}

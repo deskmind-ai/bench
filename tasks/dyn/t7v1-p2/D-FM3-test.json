@@ -1,0 +1,45 @@
+{
+ "task": "D-FM3-test",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "先新建文件夹“库房”，把文件6放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "库房"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "渡口排班-44.txt",
+     "dst": "库房/渡口排班-44.txt"
+    }
+   ]
+  },
+  {
+   "goal": "然后把文件5也放进“库房”",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "梯田测绘-75.csv",
+     "dst": "库房/梯田测绘-75.csv"
+    }
+   ]
+  },
+  {
+   "goal": "最后把文件1也放进“库房”，其他文件不动",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "harbor-tides-43.md",
+     "dst": "库房/harbor-tides-43.md"
+    }
+   ]
+  }
+ ]
+}

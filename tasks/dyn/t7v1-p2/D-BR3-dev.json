@@ -1,0 +1,17 @@
+{
+ "task": "D-BR3-dev",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建待报销文件夹。票据金额均为310元，没有符合1000元及以上条件的票据，放入0张；其他文件不动。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "待报销"
+    }
+   ]
+  }
+ ]
+}

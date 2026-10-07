@@ -1,0 +1,65 @@
+{
+ "task": "D-OG1-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "按文件类型整理为图片、文档和数据，保留现有文件夹及其内容不变。",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "图片"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "文档"
+    },
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "数据"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-11.jpg",
+     "dst": "图片/kiln-temps-11.jpg"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "oak-survey-66.jpg",
+     "dst": "图片/oak-survey-66.jpg"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "quarry-photos-84.md",
+     "dst": "文档/quarry-photos-84.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "渡口排班-94.md",
+     "dst": "文档/渡口排班-94.md"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-77.csv",
+     "dst": "数据/窑温曲线-77.csv"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "苔藓观察-30.csv",
+     "dst": "数据/苔藓观察-30.csv"
+    }
+   ]
+  }
+ ]
+}

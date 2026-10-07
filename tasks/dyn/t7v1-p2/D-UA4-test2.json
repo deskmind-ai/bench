@@ -1,0 +1,45 @@
+{
+ "task": "D-UA4-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹存档盒，并将文件5放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "存档盒"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "潮汐表-76.txt",
+     "dst": "存档盒/潮汐表-76.txt"
+    }
+   ]
+  },
+  {
+   "goal": "将文件6改名为已核-航线图-59.txt",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "航线图-59.txt",
+     "dst": "已核-航线图-59.txt"
+    }
+   ]
+  },
+  {
+   "goal": "将文件3也放进存档盒",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "oak-survey-12.log",
+     "dst": "存档盒/oak-survey-12.log"
+    }
+   ]
+  }
+ ]
+}

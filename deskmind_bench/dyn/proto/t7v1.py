@@ -37,11 +37,12 @@ from ..graders import write_steps
 from .decide import Context, ScriptedDecider, SystemOneDecider, _DESCRIBE, by_tier
 from .decide_chat import ChatChoiceDecider, openai_chat_sampled
 from .events import EventLog
+from . import oplist
 from .oplist import DeclaredWritesExecutor, OpListExecutor
 from .orchestrator import Budget, run
 from .plan import Plan, Subgoal
 from .plan_model import ModelPlanner, openai_chat
-from .tier_o import BENCH, SafeHooks, _slots, _trace_asks
+from .tier_o import BENCH, SafeHooks, _slots, _trace_asks, peek
 from .user import ScriptedUser
 
 SURE = ("从现在的情况看，你能确定下一步该怎么做，并且这件事还在用户交给你的范围里、不需要先问用户吗？")
@@ -99,6 +100,7 @@ class SureSystemOne(SystemOneDecider):
     def decide(self, ctx: Context):
         opts = ctx.options()
         body = {"state": {"goal": ctx.goal, "plan": ctx.parts, "last_part": {"outcome": ctx.outcome, "detail": ctx.detail[:400]},
+                          **({"workspace": ctx.workspace} if ctx.workspace else {}),
                           "signals": ctx.signals, "user_said": ctx.said},
                 "questions": {"next": {"type": "choice", "instructions": {"goal": ctx.goal, "rules": [
                     "Decide what the agent does next, given the plan and what just happened.",
@@ -148,6 +150,7 @@ class LunaDecider(SystemOneDecider):
         opts = ctx.options()
         body = {"model": self.model,
                 "state": {"goal": ctx.goal, "plan": ctx.parts, "last_part": {"outcome": ctx.outcome, "detail": ctx.detail[:400]},
+                          **({"workspace": ctx.workspace} if ctx.workspace else {}),
                           "signals": ctx.signals, "user_said": ctx.said},
                 "questions": {"next": {"type": "choice", "instructions": "Decide what the agent does next, given the plan and what just happened.",
                                        "criteria": {o: _DESCRIBE[o] for o in opts}}}}
@@ -210,7 +213,8 @@ def start_gate(decider, planner: FixedPlanner, goal: str, ws: Path, user: Script
     plan = planner.plan(goal, "oplist", ws=ws, said=heard)
     parts = [{"id": s.id, "goal": s.goal, "status": "todo"} for s in plan.subgoals]
     ctx = Context(goal=goal, plan_version=0, parts=parts, outcome="not_started", detail="开始之前", signals=["user_interjected"] if heard else [],
-                  said=list(heard), can_repair=False, can_replan=False, can_ask=turns > 0, can_handoff=False)
+                  said=list(heard), can_repair=False, can_replan=False, can_ask=turns > 0, can_handoff=False,
+                  workspace=oplist.listing(ws) + peek(ws))   # every arm sees what the planner saw (v1-2)
     choice, probs, by = decider.decide(ctx)
     log.decision(choice, 0, ctx.signals, by, ctx.options(), probs)
     if choice == "ask":

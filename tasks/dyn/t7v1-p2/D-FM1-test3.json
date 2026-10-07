@@ -1,0 +1,45 @@
+{
+ "task": "D-FM1-test3",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 shelf，并将文件 7 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "shelf"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "窑温曲线-18.txt",
+     "dst": "shelf/窑温曲线-18.txt"
+    }
+   ]
+  },
+  {
+   "goal": "将文件 1 改为指定的新名称",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "glacier-map-62.md",
+     "dst": "已核-glacier-map-62.md"
+    }
+   ]
+  },
+  {
+   "goal": "将文件 6 也放进 shelf",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "渡口排班-65.md",
+     "dst": "shelf/渡口排班-65.md"
+    }
+   ]
+  }
+ ]
+}

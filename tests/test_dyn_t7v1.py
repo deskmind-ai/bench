@@ -67,6 +67,15 @@ class Gate(unittest.TestCase):
         self.assertIsNone(out)
         self.assertEqual(fp.plan("g").subgoals[0].writes[0]["dst"], "资料")
 
+    def test_the_gate_shows_the_decider_the_files(self):
+        d = Path(tempfile.mkdtemp())
+        (d / "报价单.txt").write_text("甲方：示例公司", encoding="utf-8")
+        seen = []
+        start_gate(ScriptedDecider(lambda ctx: seen.append(ctx) or "continue", by="code"), FixedPlanner(PARTS, AFTER, replanner=None),
+                   "g", d, ScriptedUser([]), EventLog(d / "o.jsonl", "t"), NoHooks(), turns=3)
+        self.assertIn("报价单.txt", seen[0].workspace)
+        self.assertIn("甲方：示例公司", seen[0].workspace, "small files are peeked, as the planner saw them")
+
 
 class Oracle(unittest.TestCase):
     def test_the_ceiling_reacts_once_to_a_fired_change(self):

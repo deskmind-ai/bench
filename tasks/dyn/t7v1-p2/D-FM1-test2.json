@@ -1,0 +1,45 @@
+{
+ "task": "D-FM1-test2",
+ "model": "openai/gpt-6.1-sol",
+ "parts": [
+  {
+   "goal": "新建文件夹 studio，并将文件 5 放进去",
+   "writes": [
+    {
+     "class": "write",
+     "op": "mkdir",
+     "src": null,
+     "dst": "studio"
+    },
+    {
+     "class": "write",
+     "op": "move",
+     "src": "灯塔巡检-16.csv",
+     "dst": "studio/灯塔巡检-16.csv"
+    }
+   ]
+  },
+  {
+   "goal": "将文件 3 改名为 已核-kiln-temps-53.csv",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "kiln-temps-53.csv",
+     "dst": "已核-kiln-temps-53.csv"
+    }
+   ]
+  },
+  {
+   "goal": "将文件 7 放进 studio",
+   "writes": [
+    {
+     "class": "write",
+     "op": "move",
+     "src": "蜂箱清点-44.log",
+     "dst": "studio/蜂箱清点-44.log"
+    }
+   ]
+  }
+ ]
+}
