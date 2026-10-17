@@ -9,9 +9,12 @@ goal: |
   表头已存在，不要重复写。写完保存。
 fixture: diag_web
 reset_apps: [com.apple.Safari, com.apple.TextEdit]
+# The page is served over http for the run: Safari driven by script never loads a file:// page (hands#44).
+# Without a server (a runner that does not read `serve`) it falls back to the file.
+serve: "$WS"
 stage:
   - open -a TextEdit "$WS/inventory.csv"
-  - open -a Safari "$WS/page.html"
+  - open -a Safari "${SERVE_URL:-$WS}/page.html"
 budget: {max_actions: 40, wall_clock_s: 1200}
 sentinels: ["$WS/keep/reference.txt", "$WS/page.html"]
 grade:

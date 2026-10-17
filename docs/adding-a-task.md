@@ -10,7 +10,7 @@ A walk-through of one real proposal, [`tasks/proposals/P01-finder-copy.yaml`](..
 git clone https://github.com/deskmind-ai/bench && cd bench
 python -m venv .venv && . .venv/bin/activate && pip install -e .
 deskmind-bench verify --set proposals   # the existing proposals pass
-deskmind-bench hash                     # 5eec62a0c662: proposals never change it
+deskmind-bench hash                     # b4e74fd6a1b1: proposals never change it
 ```
 
 ## 1. Pick one thing agents get wrong (5 min)
@@ -68,7 +68,7 @@ checkpoint it would give doing nothing partial credit, and `verify` rejects that
 ```bash
 deskmind-bench verify --set proposals
 #   [OK ] P01-finder-copy
-deskmind-bench hash                   # still 5eec62a0c662
+deskmind-bench hash                   # still b4e74fd6a1b1
 ```
 
 `verify` runs the oracle (it must reach strict success) and the null control (doing nothing must score exactly 0).

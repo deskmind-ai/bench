@@ -2,6 +2,16 @@
   "suite": "diag",
   "tasks": 13,
   "note": "The diag tasks, fixtures and graders are identical in all versions (same suite hash). The version number is the harness's: how the desktop is presented to the planner and how actions are carried out. Numbers from different versions are not comparable.",
+  "suite_hash": "b4e74fd6a1b1",
+  "suite_changes": [
+    {
+      "from": "5eec62a0c662",
+      "to": "b4e74fd6a1b1",
+      "date": "2026-10-17",
+      "what": "G03-safari-extract stages its page over http://127.0.0.1:<free port>/page.html, served from the workspace for the length of the run (`serve: \"$WS\"`), instead of opening the file. Its goal, fixture, checkpoints, sentinels and the graders are unchanged. Every other task is byte-identical.",
+      "why": "A browser driven by script never loads a file:// page, and `open -a Safari <file>` opens it in a tab of the front window, which can be the user's (hands#44, deskmind#73). On a harness that does not read `serve`, the staging falls back to the file, as before."
+    }
+  ],
   "versions": [
     {
       "suite_version": "diag-v19",

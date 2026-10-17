@@ -5,7 +5,8 @@ matches *and* they were produced by the same harness version (see results/versio
 asked and how it is graded, the harness version pins how the desktop was presented and driven.
 
 The graders are hashed under the path they had in the harness this suite was developed in (``hands/graders/``), so
-the published suite reproduces the hash recorded next to every reference number: ``5eec62a0c662`` for diag.
+an unchanged suite reproduces the hash recorded next to every reference number: ``5eec62a0c662`` for diag. The suite has
+changed since in one place, G03's staging (``b4e74fd6a1b1``), recorded in results/versions.json (``suite_changes``).
 """
 
 from __future__ import annotations

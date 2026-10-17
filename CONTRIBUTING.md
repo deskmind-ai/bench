@@ -17,7 +17,7 @@ pip install -e .
 
 python -m unittest discover -s tests -v   # must pass before you open a PR
 deskmind-bench verify                     # every diag task: oracle passes, doing nothing fails
-deskmind-bench hash                       # must print 5eec62a0c662 on an unchanged checkout
+deskmind-bench hash                       # must print b4e74fd6a1b1 on an unchanged checkout
 ```
 
 - Scoring, verifying and hashing need only Python 3.11+ and PyYAML: no Mac, no driver, no model. Most issues can be
@@ -47,6 +47,7 @@ every run. Keep it small and plain text. Include `keep/reference.txt` as a senti
 | `app`, `surface`, `tags` | the bundle id observed first (`com.apple.finder`, never a display name); a coarse area; free tags |
 | `fixture` | the directory under `fixtures/` |
 | `stage`, `reset_apps` | shell commands run before the agent starts (open the documents the premise needs); apps whose windows are closed first |
+| `serve` | a folder of the workspace (`"$WS"`) served over `http://127.0.0.1:<free port>` while the task runs; staging reads the address as `$SERVE_URL`. Needed for a page shown in a browser: a browser driven by script does not open a `file://` page. Stage it as `open -a Safari "${SERVE_URL:-$WS}/page.html"` |
 | `budget` | `max_actions`, `wall_clock_s`, `max_dialogue_turns` |
 | `sentinels` | files that must be byte-identical at the end; every path starts with `$WS/` |
 | `grade.checkpoints` | `name`, `check`, optional `weight`, `critical` (zeroes partial credit on failure), `process` (about the route, not the end state) |
@@ -73,7 +74,7 @@ deskmind-bench verify --set proposals
 - The null control scores **0**: not strict, and partial credit exactly 0. `allow_vacuous` exists in the schema, but a
   proposal that needs it will not be accepted.
 
-A task that fails either check is broken, not hard. `deskmind-bench hash` must still print `5eec62a0c662`.
+A task that fails either check is broken, not hard. `deskmind-bench hash` must still print `b4e74fd6a1b1`.
 
 **The sandbox rule.** A task touches only its own workspace. `oracle_effect` and `stage` use paths relative to `$WS`,
 never `~`, an absolute path or the network. A task may not depend on anything in the user's home folder, accounts or
@@ -143,7 +144,8 @@ party has to state:
   (Python and PyYAML only).
 - **Checklist:**
   - [ ] `python -m unittest discover -s tests` and `deskmind-bench verify --set <every set you touched>` pass;
-  - [ ] `deskmind-bench hash` still prints `5eec62a0c662`, or the PR explains the change;
+  - [ ] `deskmind-bench hash` still prints `b4e74fd6a1b1`, or the PR explains the change and records it in
+    `results/versions.json` (`suite_hash`, `suite_changes`);
   - [ ] tasks and fixtures stay inside `$WS` and contain no real personal data;
   - [ ] docs updated in English and 中文 (`docs/*.md` and `docs/*.zh-CN.md`).
 

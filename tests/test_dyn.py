@@ -14,7 +14,7 @@ import yaml
 from deskmind_bench import dyn  # noqa: F401  -- registers the checks
 from deskmind_bench.dyn import events as ev
 from deskmind_bench.graders.primitives import GradeContext, evaluate
-from deskmind_bench.suite import suite_files, suite_hash
+from deskmind_bench.suite import REPO, suite_files, suite_hash
 from deskmind_bench.task import load_task
 from deskmind_bench.verify import verify_task
 
@@ -292,7 +292,8 @@ class Tasks(unittest.TestCase):
     def test_the_dynamic_checks_move_only_the_dyn_hash(self):
         dyn_labels = [label for label, _ in suite_files("dyn", self.root)]
         self.assertTrue(any(label.startswith("deskmind_bench/dyn/") for label in dyn_labels))
-        self.assertEqual(suite_hash("diag"), "5eec62a0c662", "the published diag hash")
+        published = json.loads((REPO / "results" / "versions.json").read_text(encoding="utf-8"))["suite_hash"]
+        self.assertEqual(suite_hash("diag"), published, "the published diag hash")
         self.assertFalse(any(label.startswith("deskmind_bench/dyn/") for label, _ in suite_files("diag")))
 
 

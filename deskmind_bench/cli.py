@@ -23,6 +23,8 @@ def _versions() -> int:
     print(f"{'suite version':<14} {'suite hash':<13} {'harness commit':<15} status")
     for v in data["versions"]:
         print(f"{v['suite_version']:<14} {v['suite_hash']:<13} {v['hands_commit']:<15} {v.get('status', '')}")
+    for c in data.get("suite_changes", []):
+        print(f"\nsuite {c['from']} -> {c['to']} ({c['date']}): {c['what']}")
     return 0
 
 

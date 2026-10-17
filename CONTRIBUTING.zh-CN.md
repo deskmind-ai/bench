@@ -13,7 +13,7 @@ pip install -e .
 
 python -m unittest discover -s tests -v   # 提 PR 前必须通过
 deskmind-bench verify                     # 每个 diag 任务：oracle 能通过，什么都不做则失败
-deskmind-bench hash                       # 未改动的仓库必须输出 5eec62a0c662
+deskmind-bench hash                       # 未改动的仓库必须输出 b4e74fd6a1b1
 ```
 
 - 评分、自检和算哈希只需要 Python 3.11+ 和 PyYAML，不需要 Mac、驱动或模型，大多数 issue 在 Linux 上就能做。
@@ -37,6 +37,7 @@ deskmind-bench hash                       # 未改动的仓库必须输出 5eec6
 | `app`、`surface`、`tags` | 首先观察的应用 bundle id（如 `com.apple.finder`，不要用显示名）；大类；自由标签 |
 | `fixture` | `fixtures/` 下的目录名 |
 | `stage`、`reset_apps` | agent 开始前执行的 shell 命令（打开任务前提需要的文档）；先关闭哪些应用的窗口 |
+| `serve` | 任务运行期间，用 `http://127.0.0.1:<空闲端口>` 提供工作区里的一个文件夹（`"$WS"`）；预置命令用 `$SERVE_URL` 读到这个地址。在浏览器里展示的网页需要它：用脚本驱动的浏览器不会打开 `file://` 网页。预置写成 `open -a Safari "${SERVE_URL:-$WS}/page.html"` |
 | `budget` | `max_actions`、`wall_clock_s`、`max_dialogue_turns` |
 | `sentinels` | 结束时必须逐字节不变的文件，路径都以 `$WS/` 开头 |
 | `grade.checkpoints` | `name`、`check`，可选 `weight`、`critical`（失败则部分分归零）、`process`（考察过程而非最终状态） |
@@ -56,7 +57,7 @@ deskmind-bench verify --set proposals
 - Oracle 达到**严格通过**：所有结果型 checkpoint 通过，没有 guard 被破坏，没有触发 forbid，哨兵文件未被改动。过程型 checkpoint 对 oracle 跳过，对每次真实运行都强制检查。
 - 空操作对照得 **0 分**：不严格通过，且部分分恰好为 0。格式里有 `allow_vacuous`，但需要它的提案不会被接受。
 
-任一项不满足，说明任务本身有问题，而不是任务难。同时 `deskmind-bench hash` 仍须输出 `5eec62a0c662`。
+任一项不满足，说明任务本身有问题，而不是任务难。同时 `deskmind-bench hash` 仍须输出 `b4e74fd6a1b1`。
 
 **沙箱规则。** 任务只能碰自己的工作区。`oracle_effect` 和 `stage` 只用相对 `$WS` 的路径，不用 `~`、绝对路径，也不联网。任务不能依赖用户主目录、账号或真实文档里的任何东西，也不能需要废纸篓、桌面或 iCloud。
 
@@ -112,7 +113,7 @@ deskmind-bench table my-planner.summary.json
 - **代码风格：** 跟周围代码保持一致，函数小，注释写「为什么」，评分部分不引入新依赖（只用 Python 和 PyYAML）。
 - **检查清单：**
   - [ ] `python -m unittest discover -s tests` 和 `deskmind-bench verify --set <改过的每个任务集>` 通过；
-  - [ ] `deskmind-bench hash` 仍输出 `5eec62a0c662`，或 PR 里说明了为什么变；
+  - [ ] `deskmind-bench hash` 仍输出 `b4e74fd6a1b1`，或 PR 里说明了为什么变，并记进 `results/versions.json`（`suite_hash`、`suite_changes`）；
   - [ ] 任务和 fixture 不越出 `$WS`，不含真实个人数据；
   - [ ] 中英文档同步更新（`docs/*.md` 和 `docs/*.zh-CN.md`）。
 

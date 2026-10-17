@@ -9,7 +9,7 @@
 git clone https://github.com/deskmind-ai/bench && cd bench
 python -m venv .venv && . .venv/bin/activate && pip install -e .
 deskmind-bench verify --set proposals   # 已有的候选任务都能通过
-deskmind-bench hash                     # 5eec62a0c662：候选任务不会改变它
+deskmind-bench hash                     # b4e74fd6a1b1：候选任务不会改变它
 ```
 
 ## 1. 选一个智能体常犯的错（5 分钟）
@@ -43,7 +43,7 @@ fixtures/proposal_copy/
 ```bash
 deskmind-bench verify --set proposals
 #   [OK ] P01-finder-copy
-deskmind-bench hash                   # 仍然是 5eec62a0c662
+deskmind-bench hash                   # 仍然是 b4e74fd6a1b1
 ```
 
 `verify` 会跑 oracle（必须严格通过），也会跑空白对照（什么都不做必须正好 0 分）。

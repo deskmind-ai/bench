@@ -53,8 +53,16 @@ def fake_run(runs: Path, run_id: str, task_id: str, *, solve: bool, state: str =
 
 class SuiteTests(unittest.TestCase):
     def test_hash_matches_reference_results(self):
+        """The checkout's hash is the one versions.json records, and every reference result was run either on it or on
+        a suite that a recorded change leads from to it: a change to a task, fixture or grader is never unrecorded."""
         versions = json.loads((REPO / "results" / "versions.json").read_text(encoding="utf-8"))
-        self.assertEqual({v["suite_hash"] for v in versions["versions"]}, {suite_hash("diag")})
+        self.assertEqual(versions["suite_hash"], suite_hash("diag"))
+        known, at = {versions["suite_hash"]}, versions["suite_hash"]
+        for change in reversed(versions.get("suite_changes", [])):
+            self.assertEqual(change["to"], at, "suite_changes is a chain ending at the current hash")
+            at = change["from"]
+            known.add(at)
+        self.assertLessEqual({v["suite_hash"] for v in versions["versions"]}, known)
 
     def test_reference_totals_add_up(self):
         ref = json.loads((REPO / "results" / "reference.json").read_text(encoding="utf-8"))

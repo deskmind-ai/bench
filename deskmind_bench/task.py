@@ -104,6 +104,10 @@ class Task:
     #: measuring what the task describes. Learned the hard way -- an agent
     #: correctly wrote its answer into the *previous* run's still-open ledger.
     reset_apps: list[str] = field(default_factory=list)
+    #: A folder of the workspace ("$WS", or one inside it) served over http://127.0.0.1:<free port> for the length of
+    #: the run, its address given to staging as $SERVE_URL (deskmind_bench/serve.py). A browser driven by script does
+    #: not open a file:// page, so a page staged in one is served (hands#44, deskmind#73).
+    serve: str | None = None
     #: Bundle id the agent observes first. Bundle ids only: on a zh-Hans system
     #: display names resolve for some commands and not others.
     app: str = "com.apple.finder"
@@ -196,6 +200,7 @@ def load_task(path: str | Path) -> Task:
         fixture=raw.get("fixture"),
         stage=[str(c) for c in (raw.get("stage") or [])],
         reset_apps=[str(a) for a in (raw.get("reset_apps") or [])],
+        serve=str(raw["serve"]) if raw.get("serve") else None,
         app=raw.get("app", "com.apple.finder"),
         vars={str(k): str(v) for k, v in (raw.get("vars") or {}).items()},
         budget=Budget(

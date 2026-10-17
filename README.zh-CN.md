@@ -55,7 +55,7 @@ git clone https://github.com/deskmind-ai/bench && cd bench
 pip install -e .
 
 deskmind-bench verify                  # 每个任务：效果 oracle 通过，什么都不做则失败
-deskmind-bench hash                    # 5eec62a0c662，即参考结果的套件哈希
+deskmind-bench hash                    # b4e74fd6a1b1；参考结果是在 5eec62a0c662 上跑的（见 results/versions.md）
 deskmind-bench versions                # harness 版本及其提交
 deskmind-bench score path/to/runs/ --suite-version diag-v25 --out mine.json   # 从磁盘重新给已完成的运行评分
 deskmind-bench table mine.json         # 每个任务的通过数，输出 markdown 表格
@@ -99,6 +99,7 @@ deskmind-bench run --set diag --repeats 3 --url http://127.0.0.1:8793 --label my
 ## 版本
 
 所有版本的任务、fixture 和评分器完全相同（套件哈希 `5eec62a0c662`）。变的是 harness：桌面如何呈现给规划模型、动作如何执行。
+此后只有一个任务的预置方式变了（套件哈希 `b4e74fd6a1b1`）：G03 的网页改由本机 http 服务器提供，不再直接打开文件，因为用脚本驱动的 Safari 不会加载 `file://` 网页。它的目标、检查点和评分器都没变。
 每个版本改了什么，见 [results/versions.md](results/versions.md)（以及 `versions.json`）。
 
 下表中的 hands 提交来自 DeskMind Hands 的开发历史，这段历史已在 2026-10-02 重建为一个公开提交：这些编号只用来标识版本，无法检出，所以较早的参考成绩不能原样重跑。公开的 DeskMind Hands 包含表中列出的全部改动；新的参考成绩会在它上面跑，作为新的 harness 版本发布，并注明提交。

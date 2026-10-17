@@ -60,7 +60,7 @@ git clone https://github.com/deskmind-ai/bench && cd bench
 pip install -e .
 
 deskmind-bench verify                  # every task: its effect oracle passes, doing nothing fails
-deskmind-bench hash                    # 5eec62a0c662 -- the suite hash of the reference results
+deskmind-bench hash                    # b4e74fd6a1b1 -- the reference results ran on 5eec62a0c662 (results/versions.md)
 deskmind-bench versions                # harness versions and their commits
 deskmind-bench score path/to/runs/ --suite-version diag-v25 --out mine.json   # regrade finished runs from disk
 deskmind-bench table mine.json         # per-task passes as a markdown table
@@ -107,7 +107,9 @@ model; the other rows ran from the command line. p95 9.82 s.
 ## Versions
 
 The tasks, fixtures and graders are the same in all versions (suite hash `5eec62a0c662`). What changed is the
-harness: how the desktop is shown to the planner and how actions are carried out.
+harness: how the desktop is shown to the planner and how actions are carried out. Since then one task's staging has
+changed (suite hash `b4e74fd6a1b1`): G03 opens its page from a local http server instead of the file, because Safari driven
+by script does not load a `file://` page. Its goal, checkpoints and the graders are unchanged.
 [results/versions.md](results/versions.md) (and `versions.json`) lists what changed in each.
 
 The hands commits below are from DeskMind Hands' development history, which was rebuilt into a single public commit
